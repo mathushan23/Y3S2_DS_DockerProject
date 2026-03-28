@@ -1,0 +1,229 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: healthcare-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build:
+      context: ./services/auth-service
+    environment:
+      SERVER_PORT: 8081
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${AUTH_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${AUTH_SERVICE_PORT}:8081"
+
+  patient-service:
+    build:
+      context: ./services/patient-service
+    environment:
+      SERVER_PORT: 8082
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${PATIENT_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${PATIENT_SERVICE_PORT}:8082"
+
+  doctor-service:
+    build:
+      context: ./services/doctor-service
+    environment:
+      SERVER_PORT: 8083
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${DOCTOR_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${DOCTOR_SERVICE_PORT}:8083"
+
+  appointment-service:
+    build:
+      context: ./services/appointment-service
+    environment:
+      SERVER_PORT: 8084
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${APPOINTMENT_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      PATIENT_SERVICE_URL: http://patient-service:8082
+      DOCTOR_SERVICE_URL: http://doctor-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8085
+    depends_on:
+      mysql:
+        condition: service_healthy
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+    ports:
+      - "${APPOINTMENT_SERVICE_PORT}:8084"
+
+  payment-service:
+    build:
+      context: ./services/payment-service
+    environment:
+      SERVER_PORT: 8085
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${PAYMENT_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "${PAYMENT_SERVICE_PORT}:8085"
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+    environment:
+      SERVER_PORT: 8086
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${NOTIFICATION_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8084
+    depends_on:
+      mysql:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+      appointment-service:
+        condition: service_started
+    ports:
+      - "${NOTIFICATION_SERVICE_PORT}:8086"
+
+  ai-symptom-checker-service:
+    build:
+      context: ./services/ai-symptom-checker-service
+    environment:
+      SERVER_PORT: 8087
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${AI_SYMPTOM_CHECKER_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      PATIENT_SERVICE_URL: http://patient-service:8082
+      DOCTOR_SERVICE_URL: http://doctor-service:8083
+    depends_on:
+      mysql:
+        condition: service_healthy
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+    ports:
+      - "${AI_SYMPTOM_CHECKER_SERVICE_PORT}:8087"
+
+  telemedicine-service:
+    build:
+      context: ./services/telemedicine-service
+    environment:
+      SERVER_PORT: 8088
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      DB_NAME: ${TELEMEDICINE_DB}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8084
+      NOTIFICATION_SERVICE_URL: http://notification-service:8086
+      PATIENT_SERVICE_URL: http://patient-service:8082
+      DOCTOR_SERVICE_URL: http://doctor-service:8083
+    depends_on:
+      mysql:
+        condition: service_healthy
+      appointment-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+    ports:
+      - "${TELEMEDICINE_SERVICE_PORT}:8088"
+
+  gateway:
+    build:
+      context: ./gateway
+    environment:
+      SERVER_PORT: 8080
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PATIENT_SERVICE_URL: http://patient-service:8082
+      DOCTOR_SERVICE_URL: http://doctor-service:8083
+      APPOINTMENT_SERVICE_URL: http://appointment-service:8084
+      PAYMENT_SERVICE_URL: http://payment-service:8085
+      NOTIFICATION_SERVICE_URL: http://notification-service:8086
+      AI_SYMPTOM_CHECKER_SERVICE_URL: http://ai-symptom-checker-service:8087
+      TELEMEDICINE_SERVICE_URL: http://telemedicine-service:8088
+    depends_on:
+      auth-service:
+        condition: service_started
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+      appointment-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      ai-symptom-checker-service:
+        condition: service_started
+      telemedicine-service:
+        condition: service_started
+    ports:
+      - "${GATEWAY_PORT}:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:${GATEWAY_PORT}
+    depends_on:
+      gateway:
+        condition: service_started
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql-data:

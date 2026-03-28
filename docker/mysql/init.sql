@@ -1,0 +1,18 @@
+CREATE DATABASE IF NOT EXISTS auth_db;
+CREATE DATABASE IF NOT EXISTS patient_db;
+CREATE DATABASE IF NOT EXISTS doctor_db;
+CREATE DATABASE IF NOT EXISTS appointment_db;
+CREATE DATABASE IF NOT EXISTS payment_db;
+CREATE DATABASE IF NOT EXISTS notification_db;
+CREATE DATABASE IF NOT EXISTS ai_symptom_checker_db;
+CREATE DATABASE IF NOT EXISTS telemedicine_db;
+
+GRANT ALL PRIVILEGES ON auth_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON patient_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON doctor_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON appointment_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON payment_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON notification_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON ai_symptom_checker_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON telemedicine_db.* TO 'healthcare_user'@'%';
+FLUSH PRIVILEGES;
