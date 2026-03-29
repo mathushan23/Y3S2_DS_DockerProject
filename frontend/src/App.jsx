@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import BookAppointmentPage, { AppointmentForm } from "./components/BookAppointmentPage";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
 const pages = [
   { id: "auth", label: "Auth" },
   { id: "doctors", label: "Doctors" },
+  { id: "book-appointment", label: "Book Appointment" },
   { id: "appointments", label: "Appointments" },
   { id: "telemedicine", label: "Telemedicine" }
 ];
@@ -14,6 +16,7 @@ const loginInitial = { email: "", password: "" };
 const doctorInitial = { fullName: "", specialty: "", email: "", phoneNumber: "", availability: "", verified: false };
 const appointmentInitial = {
   patientName: "",
+  doctorId: "",
   doctorName: "",
   specialty: "",
   appointmentDateTime: "",
@@ -322,6 +325,121 @@ function CrudPage({ title, subtitle, endpoint, form, setForm, initialForm, field
   );
 }
 
+function AppointmentPage({ form, setForm, initialForm }) {
+  const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const loadAppointments = async () => {
+    const data = await request("/api/appointments");
+    setAppointments(data);
+  };
+
+  const loadDoctors = async () => {
+    const data = await request("/api/doctors");
+    setDoctors(data);
+  };
+
+  useEffect(() => {
+    Promise.all([loadAppointments(), loadDoctors()]).catch((error) => setMessage(error.message));
+  }, []);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setMessage("");
+
+    const payload = {
+      patientName: form.patientName,
+      doctorName: form.doctorName,
+      specialty: form.specialty,
+      appointmentDateTime: form.appointmentDateTime,
+      status: form.status,
+      notes: form.notes
+    };
+
+    const path = editingId ? `/api/appointments/${editingId}` : "/api/appointments";
+    const method = editingId ? "PUT" : "POST";
+
+    try {
+      await request(path, { method, body: JSON.stringify(payload) });
+      setForm(initialForm);
+      setEditingId(null);
+      await loadAppointments();
+      setMessage(editingId ? "Appointment updated." : "Appointment created.");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const remove = async (id) => {
+    try {
+      await request(`/api/appointments/${id}`, { method: "DELETE" });
+      await loadAppointments();
+      setMessage("Appointment deleted.");
+    } catch (error) {
+      setMessage(error.message);
+    }
+  };
+
+  const startEdit = (appointment) => {
+    const matchedDoctor = doctors.find((doctor) => doctor.fullName === appointment.doctorName);
+    setForm({
+      patientName: appointment.patientName ?? "",
+      doctorId: matchedDoctor ? String(matchedDoctor.id) : "",
+      doctorName: appointment.doctorName ?? "",
+      specialty: appointment.specialty ?? "",
+      appointmentDateTime: appointment.appointmentDateTime ?? "",
+      status: appointment.status ?? "PENDING",
+      notes: appointment.notes ?? ""
+    });
+    setEditingId(appointment.id);
+  };
+
+  return (
+    <section className="page-grid">
+      <div className="panel">
+        <SectionHeader title="Edit Appointment" subtitle="Update the selected appointment record." />
+        <AppointmentForm
+          form={form}
+          setForm={setForm}
+          doctors={doctors}
+          onSubmit={submit}
+          submitLabel={editingId ? "Update Appointment" : "Select a record to edit"}
+        />
+        {!editingId && <p className="message">Choose an appointment from the table to edit it here.</p>}
+        {editingId && (
+          <div className="actions">
+            <button type="button" className="secondary" onClick={() => { setEditingId(null); setForm(initialForm); }}>
+              Cancel Edit
+            </button>
+          </div>
+        )}
+        {message && <p className="message">{message}</p>}
+      </div>
+
+      <div className="panel full-width">
+        <SectionHeader title="Appointment Records" subtitle="List, edit, and delete stored records." />
+        <DataTable
+          columns={["Patient Name", "Doctor Name", "Specialty", "Date Time", "Status", "Notes", "Actions"]}
+          rows={appointments.map((appointment) => [
+            appointment.patientName,
+            appointment.doctorName,
+            appointment.specialty,
+            appointment.appointmentDateTime,
+            appointment.status,
+            appointment.notes || "-",
+            <div className="row-actions" key={appointment.id}>
+              <button className="secondary" onClick={() => startEdit(appointment)}>Edit</button>
+              <button className="danger" onClick={() => remove(appointment.id)}>Delete</button>
+            </div>
+          ])}
+        />
+      </div>
+    </section>
+  );
+}
+
 function formatCell(value, type) {
   if (type === "checkbox") {
     return value ? "Yes" : "No";
@@ -401,22 +519,18 @@ export default function App() {
             ]}
           />
         )}
-        {activePage === "appointments" && (
-          <CrudPage
-            title="Appointment Management"
-            subtitle="Book, update, and cancel doctor appointments."
-            endpoint="/api/appointments"
+        {activePage === "book-appointment" && (
+          <BookAppointmentPage
             form={appointmentForm}
             setForm={setAppointmentForm}
             initialForm={appointmentInitial}
-            fields={[
-              { name: "patientName", label: "Patient Name", required: true },
-              { name: "doctorName", label: "Doctor Name", required: true },
-              { name: "specialty", label: "Specialty", required: true },
-              { name: "appointmentDateTime", label: "Date Time", type: "datetime-local", required: true },
-              { name: "status", label: "Status", type: "select", options: ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"] },
-              { name: "notes", label: "Notes" }
-            ]}
+          />
+        )}
+        {activePage === "appointments" && (
+          <AppointmentPage
+            form={appointmentForm}
+            setForm={setAppointmentForm}
+            initialForm={appointmentInitial}
           />
         )}
         {activePage === "telemedicine" && (
