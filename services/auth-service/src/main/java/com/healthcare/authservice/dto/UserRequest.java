@@ -23,4 +23,8 @@ public class UserRequest {
 
     @NotNull
     private UserRole role;
+
+    private String phoneNumber;
+
+    private String specialty;
 }
