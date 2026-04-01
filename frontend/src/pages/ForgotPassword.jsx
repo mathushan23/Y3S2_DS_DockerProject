@@ -1,30 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { request, FormField } from "../components/common";
-import { LogIn, Heart, ShieldCheck, Activity } from "lucide-react";
+import api from "../api";
+import { FormField } from "../components/common";
+import { ArrowLeft, KeyRound, Heart, ShieldCheck, Activity } from "lucide-react";
 import authBg from "../assets/auth_bg.png";
 
-export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
+export default function ForgotPassword() {
+  const [identifier, setIdentifier] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      const data = await request("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(form)
-      });
-      login(data);
-      navigate("/");
+      await api.post("/api/auth/forgot-password", { identifier });
+      navigate("/verify-otp", { state: { identifier } });
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to send verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -66,50 +61,34 @@ export default function Login() {
 
       <div className="auth-form-side">
         <div className="auth-container">
+          <Link to="/login" className="back-link" style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#64748b", textDecoration: "none", marginBottom: "2rem", fontSize: "0.875rem" }}>
+            <ArrowLeft size={16} /> Back to Sign In
+          </Link>
+          
           <div className="auth-header">
-            <h1>Welcome Back</h1>
-            <p className="lead">Please enter your details to sign in</p>
+            <h1>Forgot Password</h1>
+            <p className="lead">Enter your registered email or phone number to receive a verification code.</p>
           </div>
 
-          <form className="form-grid" onSubmit={handleSubmit}>
-            <FormField label="Email Address">
+          <form className="form-grid" onSubmit={handleSendOtp}>
+            <FormField label="Email or Phone Number">
               <input
-                type="email"
-                placeholder="john@example.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                type="text"
+                placeholder="Enter your email or phone number"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
             </FormField>
-            <FormField label="Password">
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
-            </FormField>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.5rem", marginBottom: "1rem" }}>
-              <Link to="/forgot-password" style={{ fontSize: "0.875rem", color: "#0ea5e9", textDecoration: "none", fontWeight: 500 }}>
-                Forgot Password?
-              </Link>
-            </div>
 
             {error && <p className="message" style={{ color: "#ef4444", background: "#fef2f2", border: "1px solid #fee2e2" }}>{error}</p>}
 
             <button type="submit" disabled={loading}>
-              {loading ? "Signing in..." : <><LogIn size={20} style={{ marginRight: "0.5rem", verticalAlign: "middle" }} /> Sign In</>}
+              {loading ? "Sending..." : <><KeyRound size={20} style={{ marginRight: "0.5rem", verticalAlign: "middle" }} /> Send Verification Code</>}
             </button>
           </form>
-
-          <div className="auth-footer">
-            <p>Don't have an account? <Link to="/signup">Create one for free</Link></p>
-          </div>
         </div>
       </div>
     </div>
   );
 }
-

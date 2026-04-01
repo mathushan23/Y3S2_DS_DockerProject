@@ -1,0 +1,42 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: appointment-service
+  namespace: healthcare
+spec:
+  selector:
+    app: appointment-service
+  ports:
+  - port: 8084
+    targetPort: 8084
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appointment-service
+  template:
+    metadata:
+      labels:
+        app: appointment-service
+    spec:
+      containers:
+      - name: appointment-service
+        image: healthcare-appointment-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8084
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/appointment_db?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "healthcare_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "healthcare_pass"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"

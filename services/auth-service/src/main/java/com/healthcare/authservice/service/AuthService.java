@@ -27,6 +27,7 @@ public class AuthService {
     private final AppUserRepository appUserRepository;
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
+    private final OtpService otpService;
 
     @Value("${DOCTOR_SERVICE_URL:http://localhost:8083}")
     private String doctorServiceUrl;
@@ -42,6 +43,7 @@ public class AuthService {
         AppUser user = AppUser.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : "")
                 .password(request.getPassword())
                 .role(request.getRole())
                 .build();
@@ -62,6 +64,29 @@ public class AuthService {
 
         String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().name());
         return toResponse(savedUser, token);
+    }
+    
+    // Forgot Password Flow
+    public void forgotPassword(String identifier) {
+        AppUser user = appUserRepository.findByEmailOrPhoneNumber(identifier, identifier)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier));
+
+        // Send verification (OtpService handles channel detection)
+        otpService.sendVerification(identifier);
+    }
+
+    public void verifyOtp(String identifier, String code) {
+        if (!otpService.verifyCheck(identifier, code)) {
+            throw new InvalidCredentialsException("Invalid or expired verification code");
+        }
+    }
+
+    public void resetPassword(String identifier, String newPassword) {
+        AppUser user = appUserRepository.findByEmailOrPhoneNumber(identifier, identifier)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier));
+
+        user.setPassword(newPassword);
+        appUserRepository.save(user);
     }
 
     private void createDoctorProfile(UserRequest request) {

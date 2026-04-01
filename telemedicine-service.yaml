@@ -1,0 +1,42 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: telemedicine-service
+  namespace: healthcare
+spec:
+  selector:
+    app: telemedicine-service
+  ports:
+  - port: 8088
+    targetPort: 8088
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemedicine-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telemedicine-service
+  template:
+    metadata:
+      labels:
+        app: telemedicine-service
+    spec:
+      containers:
+      - name: telemedicine-service
+        image: healthcare-telemedicine-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8088
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/telemedicine_db?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "healthcare_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "healthcare_pass"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"

@@ -1,0 +1,42 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: ai-service
+  namespace: healthcare
+spec:
+  selector:
+    app: ai-service
+  ports:
+  - port: 8087
+    targetPort: 8087
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-service
+  template:
+    metadata:
+      labels:
+        app: ai-service
+    spec:
+      containers:
+      - name: ai-service
+        image: healthcare-ai-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8087
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/ai_symptom_checker_db?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "healthcare_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "healthcare_pass"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"

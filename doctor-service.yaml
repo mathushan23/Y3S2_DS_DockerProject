@@ -1,0 +1,42 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: doctor-service
+  namespace: healthcare
+spec:
+  selector:
+    app: doctor-service
+  ports:
+  - port: 8083
+    targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: doctor-service
+  namespace: healthcare
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: doctor-service
+  template:
+    metadata:
+      labels:
+        app: doctor-service
+    spec:
+      containers:
+      - name: doctor-service
+        image: healthcare-doctor-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8083
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-service:3306/doctor_db?useSSL=false&allowPublicKeyRetrieval=true"
+        - name: SPRING_DATASOURCE_USERNAME
+          value: "healthcare_user"
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: "healthcare_pass"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
