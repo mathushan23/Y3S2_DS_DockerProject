@@ -20,3 +20,38 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8081"
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: MYSQL_HOST
+            - name: MYSQL_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: MYSQL_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: AUTH_DB
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: healthcare-secret
+                  key: MYSQL_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: healthcare-secret
+                  key: MYSQL_PASSWORD
+            - name: PATIENT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: PATIENT_SERVICE_URL
+            - name: DOCTOR_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: healthcare-config
+                  key: DOCTOR_SERVICE_URL

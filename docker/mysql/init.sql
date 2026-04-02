@@ -16,3 +16,13 @@ GRANT ALL PRIVILEGES ON notification_db.* TO 'healthcare_user'@'%';
 GRANT ALL PRIVILEGES ON ai_symptom_checker_db.* TO 'healthcare_user'@'%';
 GRANT ALL PRIVILEGES ON telemedicine_db.* TO 'healthcare_user'@'%';
 FLUSH PRIVILEGES;
+
+GRANT ALL PRIVILEGES ON auth_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON patient_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON doctor_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON appointment_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON payment_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON notification_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON ai_symptom_checker_db.* TO 'healthcare_user'@'%';
+GRANT ALL PRIVILEGES ON telemedicine_db.* TO 'healthcare_user'@'%';
+FLUSH PRIVILEGES;
