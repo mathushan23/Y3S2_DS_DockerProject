@@ -25,6 +25,37 @@ public class GlobalExceptionHandler {
         return buildBody(HttpStatus.UNAUTHORIZED, exception.getMessage());
     }
 
+    @ExceptionHandler(InvalidPhoneNumberException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidPhoneNumber(InvalidPhoneNumberException exception) {
+        return buildBody(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OtpInvalidException.class)
+    public ResponseEntity<Map<String, Object>> handleOtpInvalid(OtpInvalidException exception) {
+        return buildBody(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OtpExpiredException.class)
+    public ResponseEntity<Map<String, Object>> handleOtpExpired(OtpExpiredException exception) {
+        // Twilio returns an "expired" state; treat it as a client error.
+        return buildBody(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
+    @ExceptionHandler(OtpRateLimitedException.class)
+    public ResponseEntity<Map<String, Object>> handleOtpRateLimited(OtpRateLimitedException exception) {
+        return buildBody(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
+    }
+
+    @ExceptionHandler(TwilioVerifyConfigurationException.class)
+    public ResponseEntity<Map<String, Object>> handleTwilioConfig(TwilioVerifyConfigurationException exception) {
+        return buildBody(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidResetTokenException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidResetToken(InvalidResetTokenException exception) {
+        return buildBody(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleUserAlreadyExists(UserAlreadyExistsException exception) {
         return buildBody(HttpStatus.CONFLICT, exception.getMessage());

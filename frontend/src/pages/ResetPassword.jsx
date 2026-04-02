@@ -11,13 +11,13 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const identifier = location.state?.identifier;
+  const resetToken = location.state?.resetToken;
 
   useEffect(() => {
-    if (!identifier) {
+    if (!resetToken) {
       navigate("/forgot-password");
     }
-  }, [identifier, navigate]);
+  }, [resetToken, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +37,7 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       await api.post("/api/auth/reset-password", { 
-        identifier, 
+        resetToken,
         newPassword: form.newPassword 
       });
       setSuccess("Your password has been successfully reset. Redirecting to Login...");

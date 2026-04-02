@@ -6,7 +6,7 @@ import { ArrowLeft, KeyRound, Heart, ShieldCheck, Activity } from "lucide-react"
 import authBg from "../assets/auth_bg.png";
 
 export default function ForgotPassword() {
-  const [identifier, setIdentifier] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,8 +16,8 @@ export default function ForgotPassword() {
     setError("");
     setLoading(true);
     try {
-      await api.post("/api/auth/forgot-password", { identifier });
-      navigate("/verify-otp", { state: { identifier } });
+      await api.post("/api/auth/forgot-password", { phoneNumber });
+      navigate("/verify-otp", { state: { phoneNumber } });
     } catch (err) {
       setError(err.message || "Failed to send verification code. Please try again.");
     } finally {
@@ -67,16 +67,16 @@ export default function ForgotPassword() {
           
           <div className="auth-header">
             <h1>Forgot Password</h1>
-            <p className="lead">Enter your registered email or phone number to receive a verification code.</p>
+            <p className="lead">Enter your registered phone number to receive a verification code.</p>
           </div>
 
           <form className="form-grid" onSubmit={handleSendOtp}>
-            <FormField label="Email or Phone Number">
+            <FormField label="Phone Number">
               <input
                 type="text"
-                placeholder="Enter your email or phone number"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="Enter your phone number (E.164, e.g. +14155552671)"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
                 required
               />
             </FormField>

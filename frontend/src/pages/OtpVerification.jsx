@@ -13,13 +13,13 @@ export default function OtpVerification() {
   const inputRefs = useRef([]);
   const navigate = useNavigate();
   const location = useLocation();
-  const identifier = location.state?.identifier;
+  const phoneNumber = location.state?.phoneNumber;
 
   useEffect(() => {
-    if (!identifier) {
+    if (!phoneNumber) {
       navigate("/forgot-password");
     }
-  }, [identifier, navigate]);
+  }, [phoneNumber, navigate]);
 
   useEffect(() => {
     let timer;
@@ -70,8 +70,8 @@ export default function OtpVerification() {
 
     setLoading(true);
     try {
-      await api.post("/api/auth/verify-otp", { identifier, otp: otpString });
-      navigate("/reset-password", { state: { identifier } });
+      const data = await api.post("/api/auth/verify-otp", { phoneNumber, otp: otpString });
+      navigate("/reset-password", { state: { resetToken: data.resetToken } });
     } catch (err) {
       setError(err.message || "Invalid or expired verification code.");
     } finally {
@@ -84,7 +84,7 @@ export default function OtpVerification() {
     setError("");
     setSuccess("");
     try {
-      await api.post("/api/auth/forgot-password", { identifier });
+      await api.post("/api/auth/forgot-password", { phoneNumber });
       setSuccess("New code sent successfully.");
       setCountdown(60);
       setOtp(["", "", "", "", "", ""]);
@@ -136,7 +136,7 @@ export default function OtpVerification() {
           
           <div className="auth-header">
             <h1>Verify OTP</h1>
-            <p className="lead">Verification code sent to <strong>{identifier}</strong></p>
+            <p className="lead">Verification code sent to <strong>{phoneNumber}</strong></p>
           </div>
 
           <form className="form-grid" onSubmit={handleSubmit}>

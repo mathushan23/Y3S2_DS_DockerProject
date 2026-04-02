@@ -6,6 +6,7 @@ import com.healthcare.authservice.dto.UserRequest;
 import com.healthcare.authservice.dto.UserResponse;
 import com.healthcare.authservice.dto.ForgotPasswordRequest;
 import com.healthcare.authservice.dto.VerifyOtpRequest;
+import com.healthcare.authservice.dto.VerifyOtpResponse;
 import com.healthcare.authservice.dto.ResetPasswordRequest;
 import com.healthcare.authservice.service.AuthService;
 import jakarta.validation.Valid;
@@ -67,19 +68,19 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
-        authService.forgotPassword(request.getIdentifier());
-        return ResponseEntity.ok(Map.of("message", "OTP sent successfully to your registered phone number."));
+        authService.forgotPassword(request.getPhoneNumber());
+        return ResponseEntity.ok(Map.of("message", "If the phone number is registered, a verification code has been sent."));
     }
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
-        authService.verifyOtp(request.getIdentifier(), request.getOtp());
-        return ResponseEntity.ok(Map.of("message", "OTP verified successfully."));
+        VerifyOtpResponse response = authService.verifyOtp(request.getPhoneNumber(), request.getOtp());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        authService.resetPassword(request.getIdentifier(), request.getNewPassword());
+        authService.resetPassword(request.getResetToken(), request.getNewPassword());
         return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now login."));
     }
 }

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class VerifyOtpRequest {
     @NotBlank
-    private String identifier;
+    private String phoneNumber;
     
     @NotBlank
     private String otp;

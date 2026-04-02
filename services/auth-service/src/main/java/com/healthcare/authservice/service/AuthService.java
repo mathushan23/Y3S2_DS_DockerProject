@@ -4,20 +4,30 @@ import com.healthcare.authservice.dto.LoginRequest;
 import com.healthcare.authservice.dto.LoginResponse;
 import com.healthcare.authservice.dto.UserRequest;
 import com.healthcare.authservice.dto.UserResponse;
+import com.healthcare.authservice.dto.VerifyOtpResponse;
 import com.healthcare.authservice.entity.AppUser;
+import com.healthcare.authservice.entity.PasswordResetToken;
 import com.healthcare.authservice.entity.UserRole;
 import com.healthcare.authservice.exception.InvalidCredentialsException;
+import com.healthcare.authservice.exception.InvalidResetTokenException;
+import com.healthcare.authservice.exception.OtpInvalidException;
 import com.healthcare.authservice.exception.ResourceNotFoundException;
 import com.healthcare.authservice.exception.UserAlreadyExistsException;
 import com.healthcare.authservice.repository.AppUserRepository;
+import com.healthcare.authservice.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +38,9 @@ public class AuthService {
     private final RestTemplate restTemplate;
     private final JwtService jwtService;
     private final OtpService otpService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+    private static final long RESET_TOKEN_TTL_SECONDS = 10 * 60; // 10 minutes
 
     @Value("${DOCTOR_SERVICE_URL:http://localhost:8083}")
     private String doctorServiceUrl;
@@ -40,10 +53,14 @@ public class AuthService {
             throw new UserAlreadyExistsException("A user with this email already exists: " + request.getEmail());
         }
 
+        String normalizedPhone = request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()
+                ? otpService.normalizePhoneNumberToE164(request.getPhoneNumber())
+                : "";
+
         AppUser user = AppUser.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : "")
+                .phoneNumber(normalizedPhone)
                 .password(request.getPassword())
                 .role(request.getRole())
                 .build();
@@ -67,26 +84,96 @@ public class AuthService {
     }
     
     // Forgot Password Flow
-    public void forgotPassword(String identifier) {
-        AppUser user = appUserRepository.findByEmailOrPhoneNumber(identifier, identifier)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier));
+    public void forgotPassword(String phoneNumber) {
+        // Don't leak whether a phone number is registered; send only if we find a user.
+        String normalizedPhone = otpService.normalizePhoneNumberToE164(phoneNumber);
 
-        // Send verification (OtpService handles channel detection)
-        otpService.sendVerification(identifier);
-    }
-
-    public void verifyOtp(String identifier, String code) {
-        if (!otpService.verifyCheck(identifier, code)) {
-            throw new InvalidCredentialsException("Invalid or expired verification code");
+        Optional<AppUser> user = appUserRepository.findByPhoneNumber(normalizedPhone);
+        if (user.isEmpty()) {
+            // Backwards compatibility for users created before we normalized phone numbers.
+            user = appUserRepository.findByPhoneNumber(phoneNumber);
         }
+
+        if (user.isEmpty()) {
+            return;
+        }
+
+        otpService.sendVerification(phoneNumber);
     }
 
-    public void resetPassword(String identifier, String newPassword) {
-        AppUser user = appUserRepository.findByEmailOrPhoneNumber(identifier, identifier)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + identifier));
+    public VerifyOtpResponse verifyOtp(String phoneNumber, String code) {
+        otpService.verifyCode(phoneNumber, code); // throws detailed OTP errors
+
+        String normalizedPhone = otpService.normalizePhoneNumberToE164(phoneNumber);
+        Optional<AppUser> user = appUserRepository.findByPhoneNumber(normalizedPhone);
+        if (user.isEmpty()) {
+            user = appUserRepository.findByPhoneNumber(phoneNumber);
+        }
+
+        if (user.isEmpty()) {
+            // Verification succeeded with Twilio, but no matching user exists here.
+            throw new OtpInvalidException("Invalid or expired verification code");
+        }
+
+        String resetToken = generateResetToken();
+        String tokenHash = sha256Hex(resetToken);
+
+        Instant now = Instant.now();
+        PasswordResetToken token = PasswordResetToken.builder()
+                .phoneNumber(user.get().getPhoneNumber())
+                .tokenHash(tokenHash)
+                .createdAt(now)
+                .expiresAt(now.plusSeconds(RESET_TOKEN_TTL_SECONDS))
+                .build();
+        passwordResetTokenRepository.save(token);
+
+        return new VerifyOtpResponse(resetToken, RESET_TOKEN_TTL_SECONDS);
+    }
+
+    public void resetPassword(String resetToken, String newPassword) {
+        if (resetToken == null || resetToken.isBlank()) {
+            throw new InvalidResetTokenException("Reset token is required.");
+        }
+
+        String tokenHash = sha256Hex(resetToken);
+        PasswordResetToken token = passwordResetTokenRepository.findByTokenHash(tokenHash)
+                .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token."));
+
+        if (token.getUsedAt() != null) {
+            throw new InvalidResetTokenException("Reset token has already been used.");
+        }
+        if (token.getExpiresAt() == null || token.getExpiresAt().isBefore(Instant.now())) {
+            throw new InvalidResetTokenException("Reset token has expired.");
+        }
+
+        AppUser user = appUserRepository.findByPhoneNumber(token.getPhoneNumber())
+                .orElseThrow(() -> new InvalidResetTokenException("Reset token is invalid for this account."));
 
         user.setPassword(newPassword);
         appUserRepository.save(user);
+
+        token.setUsedAt(Instant.now());
+        passwordResetTokenRepository.save(token);
+    }
+
+    private String generateResetToken() {
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private String sha256Hex(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not hash reset token.", e);
+        }
     }
 
     private void createDoctorProfile(UserRequest request) {
