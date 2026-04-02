@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Doctors from "./pages/Doctors";
-import Appointments from "./pages/Appointments";
+import BookAppointmentPage from "./pages/BookAppointmentPage";
 import Telemedicine from "./pages/Telemedicine";
 import UserManagement from "./pages/UserManagement";
 import "./styles.css";
@@ -23,7 +23,7 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="doctors" element={<Doctors />} />
-            <Route path="appointments" element={<Appointments />} />
+            <Route path="appointments" element={<BookAppointmentPage />} />
             <Route path="telemedicine" element={<Telemedicine />} />
             <Route path="users" element={<UserManagement />} />
           </Route>
