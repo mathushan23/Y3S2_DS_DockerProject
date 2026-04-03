@@ -92,6 +92,11 @@ services:
         condition: service_started
       payment-service:
         condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/api/appointments/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     ports:
       - "${APPOINTMENT_SERVICE_PORT}:8084"
 
@@ -155,34 +160,6 @@ services:
     ports:
       - "${AI_SYMPTOM_CHECKER_SERVICE_PORT}:8087"
 
-  telemedicine-service:
-    build:
-      context: ./services/telemedicine-service
-    environment:
-      SERVER_PORT: 8088
-      MYSQL_HOST: mysql
-      MYSQL_PORT: 3306
-      DB_NAME: ${TELEMEDICINE_DB}
-      DB_USERNAME: ${MYSQL_USER}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
-      APPOINTMENT_SERVICE_URL: http://appointment-service:8084
-      NOTIFICATION_SERVICE_URL: http://notification-service:8086
-      PATIENT_SERVICE_URL: http://patient-service:8082
-      DOCTOR_SERVICE_URL: http://doctor-service:8083
-    depends_on:
-      mysql:
-        condition: service_healthy
-      appointment-service:
-        condition: service_started
-      notification-service:
-        condition: service_started
-      patient-service:
-        condition: service_started
-      doctor-service:
-        condition: service_started
-    ports:
-      - "${TELEMEDICINE_SERVICE_PORT}:8088"
-
   gateway:
     build:
       context: ./gateway
@@ -195,7 +172,7 @@ services:
       PAYMENT_SERVICE_URL: http://payment-service:8085
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
       AI_SYMPTOM_CHECKER_SERVICE_URL: http://ai-symptom-checker-service:8087
-      TELEMEDICINE_SERVICE_URL: http://telemedicine-service:8088
+
     depends_on:
       auth-service:
         condition: service_started
@@ -211,8 +188,7 @@ services:
         condition: service_started
       ai-symptom-checker-service:
         condition: service_started
-      telemedicine-service:
-        condition: service_started
+
     ports:
       - "${GATEWAY_PORT}:8080"
 

@@ -4,7 +4,6 @@ import com.healthcare.doctorservice.dto.DoctorRequest;
 import com.healthcare.doctorservice.dto.DoctorResponse;
 import com.healthcare.doctorservice.service.DoctorService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +20,13 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/doctors")
-@RequiredArgsConstructor
 public class DoctorController {
 
     private final DoctorService doctorService;
+
+    public DoctorController(DoctorService doctorService) {
+        this.doctorService = doctorService;
+    }
 
     @GetMapping("/health")
     public Map<String, String> health() {

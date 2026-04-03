@@ -1,31 +1,28 @@
 package com.healthcare.appointmentservice.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "appointments")
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Appointment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    private Long patientId;
+    private Long doctorId;
 
     @Column(nullable = false)
     private String patientName;
@@ -33,7 +30,6 @@ public class Appointment {
     @Column(nullable = false)
     private String doctorName;
 
-    @Column(nullable = false)
     private String specialty;
 
     @Column(nullable = false)
@@ -42,5 +38,22 @@ public class Appointment {
     @Column(nullable = false)
     private String status;
 
+    private String patientEmail;
+    private String patientPhone;
+    private String location;
     private String notes;
+    private String billingStatus;
+    private Double fee;
+
+    @Column(length = 500)
+    private String reason;
+
+    @Column(length = 1000)
+    private String symptoms;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

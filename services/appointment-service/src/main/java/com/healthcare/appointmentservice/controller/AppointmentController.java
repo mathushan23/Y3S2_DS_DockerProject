@@ -5,20 +5,16 @@ import com.healthcare.appointmentservice.dto.AppointmentResponse;
 import com.healthcare.appointmentservice.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/appointments")
 @RequiredArgsConstructor
@@ -27,34 +23,49 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     @GetMapping("/health")
-    public Map<String, String> health() {
-        return Map.of("service", "appointment-service", "status", "UP");
+    public ResponseEntity<Map<String, String>> health() {
+        Map<String, String> response = new HashMap<>();
+        response.put("service", "appointment-service");
+        response.put("status", "UP");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public List<AppointmentResponse> getAllAppointments() {
-        return appointmentService.getAllAppointments();
+    public ResponseEntity<List<AppointmentResponse>> getAllAppointments(
+            @RequestParam(required = false) Long patientId,
+            @RequestParam(required = false) Long doctorId) {
+        log.info("GET /api/appointments - patientId: {}, doctorId: {}", patientId, doctorId);
+        List<AppointmentResponse> appointments = appointmentService.getAllAppointments(patientId, doctorId);
+        return ResponseEntity.ok(appointments);
     }
 
     @GetMapping("/{id}")
-    public AppointmentResponse getAppointmentById(@PathVariable Long id) {
-        return appointmentService.getAppointmentById(id);
+    public ResponseEntity<AppointmentResponse> getAppointmentById(@PathVariable Long id) {
+        log.info("GET /api/appointments/{}", id);
+        AppointmentResponse appointment = appointmentService.getAppointmentById(id);
+        return ResponseEntity.ok(appointment);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public AppointmentResponse createAppointment(@Valid @RequestBody AppointmentRequest request) {
-        return appointmentService.createAppointment(request);
+    public ResponseEntity<AppointmentResponse> createAppointment(@Valid @RequestBody AppointmentRequest request) {
+        log.info("POST /api/appointments - request: {}", request);
+        AppointmentResponse created = appointmentService.createAppointment(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
-    public AppointmentResponse updateAppointment(@PathVariable Long id, @Valid @RequestBody AppointmentRequest request) {
-        return appointmentService.updateAppointment(id, request);
+    public ResponseEntity<AppointmentResponse> updateAppointment(@PathVariable Long id, @Valid @RequestBody AppointmentRequest request) {
+        log.info("PUT /api/appointments/{} - status: {}", id, request.getStatus());
+        AppointmentResponse updated = appointmentService.updateAppointment(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteAppointment(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteAppointment(@PathVariable Long id) {
+        log.info("DELETE /api/appointments/{}", id);
         appointmentService.deleteAppointment(id);
+        return ResponseEntity.noContent().build();
     }
 }
