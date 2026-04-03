@@ -71,121 +71,85 @@ const Availability = () => {
         }
     }
 
-    // Load data from localStorage on mount
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    const { token } = useAuth();
+
+    // Load data from API on mount
     useEffect(() => {
-        loadAvailabilityData();
-    }, []);
+        if (user?.id) {
+            loadAvailabilityData();
+        }
+    }, [user?.id]);
 
-    const loadAvailabilityData = () => {
+    const loadAvailabilityData = async () => {
         setLoading(true);
-        // Load from localStorage
-        const storedAvailability = localStorage.getItem('doctorAvailability');
-        const storedBookedSlots = localStorage.getItem('bookedSlots');
-        const storedUnavailableDates = localStorage.getItem('unavailableDates');
-
-        if (storedAvailability) {
-            setAvailability(JSON.parse(storedAvailability));
-        } else {
-            // Default availability data
-            const defaultAvailability = [
-                {
-                    id: 1,
-                    dayOfWeek: "Monday",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                    breakStart: "13:00",
-                    breakEnd: "14:00",
-                    slotDuration: 30,
-                    maxPatientsPerSlot: 1,
-                    isRecurring: true,
-                    location: "Main Clinic",
-                    notes: "Regular clinic hours",
-                },
-                {
-                    id: 2,
-                    dayOfWeek: "Tuesday",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                    breakStart: "13:00",
-                    breakEnd: "14:00",
-                    slotDuration: 30,
-                    maxPatientsPerSlot: 1,
-                    isRecurring: true,
-                    location: "Main Clinic",
-                    notes: "",
-                },
-                {
-                    id: 3,
-                    dayOfWeek: "Wednesday",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                    breakStart: "13:00",
-                    breakEnd: "14:00",
-                    slotDuration: 30,
-                    maxPatientsPerSlot: 1,
-                    isRecurring: true,
-                    location: "Main Clinic",
-                    notes: "",
-                },
-                {
-                    id: 4,
-                    dayOfWeek: "Thursday",
-                    startTime: "09:00",
-                    endTime: "17:00",
-                    breakStart: "13:00",
-                    breakEnd: "14:00",
-                    slotDuration: 30,
-                    maxPatientsPerSlot: 1,
-                    isRecurring: true,
-                    location: "Main Clinic",
-                    notes: "",
-                },
-                {
-                    id: 5,
-                    dayOfWeek: "Friday",
-                    startTime: "09:00",
-                    endTime: "16:00",
-                    breakStart: "13:00",
-                    breakEnd: "14:00",
-                    slotDuration: 30,
-                    maxPatientsPerSlot: 1,
-                    isRecurring: true,
-                    location: "Main Clinic",
-                    notes: "Early closing on Fridays",
-                },
-            ];
-            setAvailability(defaultAvailability);
-            localStorage.setItem('doctorAvailability', JSON.stringify(defaultAvailability));
+        try {
+            // In a real app, you would fetch these from separate endpoints
+            // For now, these are part of the doctor profile or separate tables
+            const response = await fetch(`${API_BASE_URL}/api/doctors/${user.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const doctorData = await response.json();
+                if (doctorData.workingHours) setAvailability(doctorData.workingHours);
+                // if (doctorData.unavailableDates) setUnavailableDates(doctorData.unavailableDates);
+            }
+            
+            // Also fetch booked slots from appointment service
+            const appointmentsResponse = await fetch(`${API_BASE_URL}/api/appointments?doctorId=${user.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (appointmentsResponse.ok) {
+                const appointments = await appointmentsResponse.json();
+                setBookedSlots(appointments.map(app => ({
+                    id: app.id,
+                    patientName: app.patientName,
+                    date: app.appointmentDateTime.split('T')[0],
+                    startTime: app.appointmentDateTime.split('T')[1].substring(0, 5),
+                    status: app.status
+                })));
+            }
+        } catch (error) {
+            console.error("Error loading availability:", error);
+            showNotification("Failed to load availability data", "danger");
+        } finally {
+            setLoading(false);
         }
-
-        if (storedBookedSlots) {
-            setBookedSlots(JSON.parse(storedBookedSlots));
-        } else {
-            setBookedSlots([]);
-        }
-
-        if (storedUnavailableDates) {
-            setUnavailableDates(JSON.parse(storedUnavailableDates));
-        } else {
-            setUnavailableDates([]);
-        }
-
-        setLoading(false);
     };
 
-    const saveAvailabilityData = (updatedAvailability) => {
-        localStorage.setItem('doctorAvailability', JSON.stringify(updatedAvailability));
-        setAvailability(updatedAvailability);
+    const saveAvailabilityData = async (updatedAvailability) => {
+        setLoading(true);
+        try {
+            // Update the doctor profile with new working hours
+            const response = await fetch(`${API_BASE_URL}/api/doctors/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ workingHours: updatedAvailability })
+            });
+            if (response.ok) {
+                setAvailability(updatedAvailability);
+                showNotification("Schedule updated!", "success");
+            }
+        } catch (error) {
+            console.error("Error saving availability:", error);
+            showNotification("Failed to save schedule", "danger");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const saveBookedSlots = (updatedBookedSlots) => {
-        localStorage.setItem('bookedSlots', JSON.stringify(updatedBookedSlots));
-        setBookedSlots(updatedBookedSlots);
-    };
-
-    const saveUnavailableDates = (updatedUnavailableDates) => {
-        localStorage.setItem('unavailableDates', JSON.stringify(updatedUnavailableDates));
+    const saveUnavailableDates = async (updatedUnavailableDates) => {
+        // Implementation for saving unavailable dates
         setUnavailableDates(updatedUnavailableDates);
+        showNotification("Unavailable dates updated!", "success");
     };
 
     const handleOpenModal = (availabilityItem = null) => {

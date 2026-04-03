@@ -62,92 +62,118 @@ const Prescriptions = () => {
         instructions: "",
     });
 
-    // Load prescriptions from localStorage on mount
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    const { token } = useAuth();
+
+    // Load prescriptions from API on mount
     useEffect(() => {
-        loadPrescriptions();
+        if (user) {
+            loadPrescriptions();
+        }
     }, [user]);
 
-    useEffect(() => {
-        filterPrescriptions();
-    }, [searchTerm, prescriptions, activeTab]);
-
-    const loadPrescriptions = () => {
+    const loadPrescriptions = async () => {
         setLoading(true);
-        // Load from localStorage
-        const storedPrescriptions = localStorage.getItem('prescriptions');
-        let allPrescriptions = storedPrescriptions ? JSON.parse(storedPrescriptions) : getMockPrescriptions();
+        try {
+            let url = `${API_BASE_URL}/api/doctors/prescriptions`;
+            if (isPatient) {
+                url += `?email=${user.email}`;
+            }
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                setPrescriptions(data);
+                setFilteredPrescriptions(data);
+            } else {
+                throw new Error("Failed to load prescriptions");
+            }
+        } catch (error) {
+            console.error("Error loading prescriptions:", error);
+            showNotification("Failed to load prescriptions", "danger");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        // Filter based on user role
-        if (isPatient && user) {
-            allPrescriptions = allPrescriptions.filter(p => p.patientId === user.id || p.patientEmail === user.email);
+    const handleSavePrescription = async () => {
+        if (!formData.patientId || !formData.diagnosis || formData.medicines.length === 0) {
+            showNotification("Please fill all required fields and add at least one medicine", "danger");
+            return;
         }
 
-        setPrescriptions(allPrescriptions);
-        setFilteredPrescriptions(allPrescriptions);
-        setLoading(false);
-    };
+        setLoading(true);
+        try {
+            const prescriptionData = {
+                patientId: formData.patientId,
+                patientName: formData.patientName,
+                patientEmail: patients.find(p => p.id === formData.patientId)?.email,
+                doctorName: user?.fullName || "Dr. Sarah Wilson",
+                doctorId: user?.id || 1,
+                diagnosis: formData.diagnosis,
+                notes: formData.notes,
+                medicines: formData.medicines,
+                status: formData.status,
+                validUntil: formData.validUntil || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+                refills: 0,
+            };
 
-    const getMockPrescriptions = () => {
-        const mockPrescriptions = [
-            {
-                id: 1,
-                patientId: 1,
-                patientName: "John Doe",
-                patientEmail: "john@example.com",
-                doctorName: "Dr. Sarah Wilson",
-                doctorId: 1,
-                diagnosis: "Acute Upper Respiratory Infection",
-                notes: "Patient presented with cough, fever, and sore throat. Prescribed antibiotics and advised rest.",
-                medicines: [
-                    { id: 1, name: "Amoxicillin", dosage: "500mg", frequency: "3 times daily", duration: "7 days", instructions: "Take with food" },
-                    { id: 2, name: "Ibuprofen", dosage: "400mg", frequency: "As needed", duration: "5 days", instructions: "Take for fever or pain" }
-                ],
-                status: "ACTIVE",
-                createdAt: "2024-03-15T10:30:00",
-                validUntil: "2024-04-15",
-                refills: 0,
-            },
-            {
-                id: 2,
-                patientId: 2,
-                patientName: "Jane Smith",
-                patientEmail: "jane@example.com",
-                doctorName: "Dr. Sarah Wilson",
-                doctorId: 1,
-                diagnosis: "Hypertension",
-                notes: "Blood pressure consistently high. Started on ACE inhibitor.",
-                medicines: [
-                    { id: 3, name: "Lisinopril", dosage: "10mg", frequency: "Once daily", duration: "30 days", instructions: "Take in the morning" }
-                ],
-                status: "ACTIVE",
-                createdAt: "2024-03-10T14:20:00",
-                validUntil: "2024-04-10",
-                refills: 2,
-            },
-            {
-                id: 3,
-                patientId: 3,
-                patientName: "Robert Johnson",
-                patientEmail: "robert@example.com",
-                doctorName: "Dr. Sarah Wilson",
-                doctorId: 1,
-                diagnosis: "Type 2 Diabetes",
-                notes: "Follow-up after blood work. A1C elevated.",
-                medicines: [
-                    { id: 4, name: "Metformin", dosage: "500mg", frequency: "Twice daily", duration: "90 days", instructions: "Take with meals" }
-                ],
-                status: "EXPIRED",
-                createdAt: "2024-01-05T09:15:00",
-                validUntil: "2024-02-05",
-                refills: 0,
+            const url = editingId ? 
+                `${API_BASE_URL}/api/doctors/prescriptions/${editingId}` : 
+                `${API_BASE_URL}/api/doctors/prescriptions`;
+            
+            const response = await fetch(url, {
+                method: editingId ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(prescriptionData)
+            });
+
+            if (response.ok) {
+                showNotification(editingId ? "Prescription updated!" : "Prescription created!", "success");
+                loadPrescriptions();
+                handleCloseModal();
+            } else {
+                throw new Error("Failed to save prescription");
             }
-        ];
-        return mockPrescriptions;
+        } catch (error) {
+            console.error("Error saving prescription:", error);
+            showNotification("Failed to save prescription", "danger");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const savePrescriptionsToLocal = (updatedPrescriptions) => {
-        localStorage.setItem('prescriptions', JSON.stringify(updatedPrescriptions));
-        setPrescriptions(updatedPrescriptions);
+    const handleDeletePrescription = async (id) => {
+        if (window.confirm("Are you sure you want to delete this prescription?")) {
+            setLoading(true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/doctors/prescriptions/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    showNotification("Prescription deleted!", "success");
+                    loadPrescriptions();
+                } else {
+                    throw new Error("Failed to delete");
+                }
+            } catch (error) {
+                console.error("Error deleting prescription:", error);
+                showNotification("Failed to delete prescription", "danger");
+            } finally {
+                setLoading(false);
+            }
+        }
     };
 
     const filterPrescriptions = () => {
@@ -247,59 +273,10 @@ const Prescriptions = () => {
         });
     };
 
-    const handleSavePrescription = () => {
-        if (!formData.patientId || !formData.diagnosis || formData.medicines.length === 0) {
-            showNotification("Please fill all required fields and add at least one medicine", "danger");
-            return;
-        }
-
-        const prescriptionData = {
-            id: editingId || Date.now(),
-            patientId: formData.patientId,
-            patientName: formData.patientName,
-            patientEmail: patients.find(p => p.id === formData.patientId)?.email,
-            doctorName: user?.name || "Dr. Sarah Wilson",
-            doctorId: user?.id || 1,
-            diagnosis: formData.diagnosis,
-            notes: formData.notes,
-            medicines: formData.medicines,
-            status: formData.status,
-            createdAt: editingId ?
-                prescriptions.find(p => p.id === editingId)?.createdAt :
-                new Date().toISOString(),
-            validUntil: formData.validUntil || new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
-            refills: editingId ?
-                prescriptions.find(p => p.id === editingId)?.refills || 0 :
-                0,
-        };
-
-        let updatedPrescriptions;
-        if (editingId) {
-            updatedPrescriptions = prescriptions.map(p =>
-                p.id === editingId ? prescriptionData : p
-            );
-            showNotification("Prescription updated successfully!", "success");
-        } else {
-            updatedPrescriptions = [prescriptionData, ...prescriptions];
-            showNotification("Prescription created successfully!", "success");
-        }
-
-        savePrescriptionsToLocal(updatedPrescriptions);
-        handleCloseModal();
-    };
-
-    const handleDeletePrescription = (id) => {
-        if (window.confirm("Are you sure you want to delete this prescription?")) {
-            const updatedPrescriptions = prescriptions.filter(p => p.id !== id);
-            savePrescriptionsToLocal(updatedPrescriptions);
-            showNotification("Prescription deleted successfully!", "success");
-        }
-    };
-
     const handleViewPrescription = (prescription) => {
         setSelectedPrescription(prescription);
         setShowViewModal(true);
-    };
+    }
 
     const handleDownloadPDF = (prescription) => {
         // In a real app, you would generate a PDF here

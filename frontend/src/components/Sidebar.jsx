@@ -10,7 +10,7 @@ export default function Sidebar() {
     { id: "dashboard", label: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> },
     { id: "prescriptions", label: "Prescriptions", path: "/prescriptions", icon: <Calendar size={20} /> },
     { id: "appointments", label: "Appointments", path: "/appointments", icon: <Calendar size={20} /> },
-    { id: "telemedicine", label: "Telemedicine", path: "/telemedicine", icon: <Video size={20} /> },
+
     { id: "availability", label: "Availability", path: "/availability", icon: <Video size={20} /> },
     { id: "patientreport", label: "PatientReport", path: "/patientreport", icon: <Video size={20} /> },
     { id: "profile", label: "Profile", path: "/profile", icon: <Video size={20} /> },
@@ -99,7 +99,7 @@ export default function Sidebar() {
           </Button>
         </div>
 
-        <style jsx>{`
+        <style dangerouslySetInnerHTML={{ __html: `
         .hover-bg-light:hover {
           background-color: rgba(255, 255, 255, 0.1);
         }
@@ -107,7 +107,7 @@ export default function Sidebar() {
           background-color: rgba(13, 110, 253, 0.25);
           color: #fff;
         }
-      `}</style>
+      ` }} />
       </div>
   );
 }

@@ -13,12 +13,14 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const Appointments = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const isDoctor = user?.role === 'DOCTOR' || user?.role === 'ADMIN';
     const isPatient = user?.role === 'PATIENT';
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
     // State for appointments
     const [appointments, setAppointments] = useState([]);
+    const [doctors, setDoctors] = useState([]);
     const [filteredAppointments, setFilteredAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -33,266 +35,182 @@ const Appointments = () => {
     const [toastVariant, setToastVariant] = useState("success");
     const [activeTab, setActiveTab] = useState('requests');
 
-    // Form data for new appointment (for patients)
-    const [formData, setFormData] = useState({
-        patientName: "",
-        patientEmail: "",
-        doctorId: "",
-        doctorName: "",
-        date: "",
-        time: "",
-        reason: "",
-        symptoms: "",
-        notes: "",
-    });
-
-    // Mock doctors data
-    const [doctors, setDoctors] = useState([
-        { id: 1, name: "Dr. Sarah Wilson", specialty: "Cardiologist", available: true },
-        { id: 2, name: "Dr. Michael Chen", specialty: "Neurologist", available: true },
-        { id: 3, name: "Dr. Emily Rodriguez", specialty: "Pediatrician", available: true },
-        { id: 4, name: "Dr. James Peterson", specialty: "Dermatologist", available: false },
-    ]);
-
-    // Load appointments from localStorage on mount
-    useEffect(() => {
-        loadAppointments();
-    }, [user]);
-
-    useEffect(() => {
-        filterAppointments();
-    }, [searchTerm, statusFilter, appointments, activeTab]);
-
-    const loadAppointments = () => {
-        setLoading(true);
-        // Load from localStorage
-        const storedAppointments = localStorage.getItem('appointments');
-        let allAppointments = storedAppointments ? JSON.parse(storedAppointments) : getMockAppointments();
-
-        // Filter based on user role
-        if (isPatient && user) {
-            allAppointments = allAppointments.filter(a => a.patientEmail === user.email || a.patientId === user.id);
-        } else if (isDoctor && user) {
-            allAppointments = allAppointments.filter(a => a.doctorId === user.id || a.doctorName === user.name);
-        }
-
-        setAppointments(allAppointments);
-        setFilteredAppointments(allAppointments);
-        setLoading(false);
-    };
-
-    const getMockAppointments = () => {
-        const mockAppointments = [
-            {
-                id: 1,
-                patientId: 1,
-                patientName: "John Doe",
-                patientEmail: "john@example.com",
-                patientPhone: "+1 234 567 8900",
-                doctorId: 1,
-                doctorName: "Dr. Sarah Wilson",
-                doctorSpecialty: "Cardiologist",
-                date: "2024-03-20",
-                time: "10:00 AM",
-                endTime: "10:30 AM",
-                reason: "Chest pain and shortness of breath",
-                symptoms: "Chest discomfort, difficulty breathing, fatigue",
-                notes: "Patient has history of hypertension",
-                status: "PENDING",
-                type: "In-person",
-                location: "Main Clinic, Room 101",
-                createdAt: "2024-03-15T08:30:00",
-                completedAt: null,
-            },
-            {
-                id: 2,
-                patientId: 2,
-                patientName: "Jane Smith",
-                patientEmail: "jane@example.com",
-                patientPhone: "+1 234 567 8901",
-                doctorId: 1,
-                doctorName: "Dr. Sarah Wilson",
-                doctorSpecialty: "Cardiologist",
-                date: "2024-03-21",
-                time: "02:00 PM",
-                endTime: "02:30 PM",
-                reason: "Follow-up on blood pressure medication",
-                symptoms: "Headache, dizziness",
-                notes: "Checking Lisinopril effectiveness",
-                status: "CONFIRMED",
-                type: "Telemedicine",
-                location: "Video Call",
-                createdAt: "2024-03-14T10:15:00",
-                completedAt: null,
-            },
-            {
-                id: 3,
-                patientId: 3,
-                patientName: "Robert Johnson",
-                patientEmail: "robert@example.com",
-                patientPhone: "+1 234 567 8902",
-                doctorId: 2,
-                doctorName: "Dr. Michael Chen",
-                doctorSpecialty: "Neurologist",
-                date: "2024-03-19",
-                time: "11:30 AM",
-                endTime: "12:00 PM",
-                reason: "Migraine treatment review",
-                symptoms: "Severe headaches, sensitivity to light",
-                notes: "MRI results ready for discussion",
-                status: "COMPLETED",
-                type: "In-person",
-                location: "Main Clinic, Room 205",
-                createdAt: "2024-03-10T14:20:00",
-                completedAt: "2024-03-19T12:05:00",
-            },
-            {
-                id: 4,
-                patientId: 4,
-                patientName: "Emily Davis",
-                patientEmail: "emily@example.com",
-                patientPhone: "+1 234 567 8903",
-                doctorId: 3,
-                doctorName: "Dr. Emily Rodriguez",
-                doctorSpecialty: "Pediatrician",
-                date: "2024-03-18",
-                time: "09:00 AM",
-                endTime: "09:30 AM",
-                reason: "Annual check-up for child",
-                symptoms: "None - routine checkup",
-                notes: "Bring vaccination records",
-                status: "CANCELLED",
-                type: "In-person",
-                location: "Children's Clinic, Room 10",
-                createdAt: "2024-03-01T09:00:00",
-                completedAt: null,
-            },
-            {
-                id: 5,
-                patientId: 5,
-                patientName: "Michael Brown",
-                patientEmail: "michael@example.com",
-                patientPhone: "+1 234 567 8904",
-                doctorId: 4,
-                doctorName: "Dr. James Peterson",
-                doctorSpecialty: "Dermatologist",
-                date: "2024-03-22",
-                time: "03:00 PM",
-                endTime: "03:30 PM",
-                reason: "Skin rash consultation",
-                symptoms: "Red itchy patches on arms",
-                notes: "Possible allergic reaction",
-                status: "PENDING",
-                type: "In-person",
-                location: "Dermatology Center, Room 8",
-                createdAt: "2024-03-16T11:45:00",
-                completedAt: null,
-            },
-        ];
-        return mockAppointments;
-    };
-
-    const saveAppointmentsToLocal = (updatedAppointments) => {
-        // Merge with existing appointments from localStorage
-        const storedAppointments = localStorage.getItem('appointments');
-        let allAppointments = storedAppointments ? JSON.parse(storedAppointments) : [];
-
-        // Update or add appointments
-        updatedAppointments.forEach(updatedApp => {
-            const index = allAppointments.findIndex(a => a.id === updatedApp.id);
-            if (index !== -1) {
-                allAppointments[index] = updatedApp;
-            } else {
-                allAppointments.push(updatedApp);
-            }
+    const formatDateTime = (dateTimeStr) => {
+        if (!dateTimeStr) return { date: "", time: "" };
+        const date = new Date(dateTimeStr);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         });
+        const formattedTime = date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        return { date: formattedDate, time: formattedTime };
+    };
 
-        localStorage.setItem('appointments', JSON.stringify(allAppointments));
-        setAppointments(updatedAppointments);
+    const loadDoctors = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/doctors`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setDoctors(data);
+                console.log("Doctors loaded:", data.length);
+            } else {
+                console.error("Failed to load doctors:", response.status);
+            }
+        } catch (error) {
+            console.error("Error loading doctors:", error);
+        }
+    };
+
+    const loadAppointments = async () => {
+        setLoading(true);
+        try {
+            let url = `${API_BASE_URL}/api/appointments`;
+            const params = new URLSearchParams();
+
+            if (isPatient && user?.id) {
+                params.append('patientId', user.id);
+            } else if (isDoctor && user?.id) {
+                params.append('doctorId', user.id);
+            }
+
+            if (params.toString()) {
+                url += `?${params.toString()}`;
+            }
+
+            console.log("Fetching appointments from:", url);
+
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("Appointments received:", data.length);
+
+                // Map API data to frontend format
+                const mappedData = data.map(app => {
+                    const { date, time } = formatDateTime(app.appointmentDateTime);
+                    return {
+                        id: app.id,
+                        patientId: app.patientId,
+                        doctorId: app.doctorId,
+                        patientName: app.patientName || "Unknown Patient",
+                        doctorName: app.doctorName || "Unknown Doctor",
+                        patientEmail: app.patientEmail || "",
+                        patientPhone: app.patientPhone || "",
+                        specialty: app.specialty || "",
+                        date: date,
+                        time: time,
+                        appointmentDateTime: app.appointmentDateTime,
+                        reason: app.notes || "No reason provided",
+                        notes: app.notes || "",
+                        status: app.status,
+                        type: app.location?.toLowerCase().includes('tele') ? "Telemedicine" : "In-person",
+                        location: app.location || "Main Clinic",
+                        fee: app.fee || 0,
+                        billingStatus: app.billingStatus || "PENDING"
+                    };
+                });
+                setAppointments(mappedData);
+                setFilteredAppointments(mappedData);
+                showNotification(`Loaded ${mappedData.length} appointments`, "success");
+            } else {
+                const errorText = await response.text();
+                console.error("API Error:", response.status, errorText);
+                showNotification(`Failed to load appointments: ${response.status}`, "danger");
+            }
+        } catch (error) {
+            console.error("Error loading appointments:", error);
+            showNotification("Failed to connect to server. Please check if backend is running.", "danger");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const filterAppointments = () => {
         let filtered = [...appointments];
 
-        // Status filter
-        if (statusFilter !== 'all') {
-            filtered = filtered.filter(a => a.status === statusFilter.toUpperCase());
-        }
-
         // Tab filter
         if (activeTab === 'requests') {
             filtered = filtered.filter(a => a.status === 'PENDING');
         } else if (activeTab === 'upcoming') {
-            filtered = filtered.filter(a => a.status === 'CONFIRMED' && new Date(a.date) >= new Date());
+            filtered = filtered.filter(a => a.status === 'CONFIRMED');
         } else if (activeTab === 'completed') {
             filtered = filtered.filter(a => a.status === 'COMPLETED');
         } else if (activeTab === 'cancelled') {
             filtered = filtered.filter(a => a.status === 'CANCELLED');
         }
 
+        // Additional status filter (if not using tabs)
+        if (activeTab === 'all' && statusFilter !== 'all') {
+            filtered = filtered.filter(a => a.status === statusFilter.toUpperCase());
+        }
+
         // Search filter
         if (searchTerm) {
+            const term = searchTerm.toLowerCase();
             filtered = filtered.filter(a =>
-                a.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.doctorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                a.reason?.toLowerCase().includes(searchTerm.toLowerCase())
+                (a.patientName?.toLowerCase() || '').includes(term) ||
+                (a.doctorName?.toLowerCase() || '').includes(term) ||
+                (a.reason?.toLowerCase() || '').includes(term) ||
+                (a.specialty?.toLowerCase() || '').includes(term)
             );
         }
 
-        // Sort by date (upcoming first)
-        filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // Sort by date
+        filtered.sort((a, b) => new Date(a.appointmentDateTime) - new Date(b.appointmentDateTime));
 
         setFilteredAppointments(filtered);
         setCurrentPage(1);
     };
 
+    useEffect(() => {
+        if (user && token) {
+            loadAppointments();
+            if (isPatient) {
+                loadDoctors();
+            }
+        }
+    }, [user, token]);
+
+    useEffect(() => {
+        filterAppointments();
+    }, [searchTerm, statusFilter, appointments, activeTab]);
+
+    const [formData, setFormData] = useState({
+        doctorId: "",
+        date: "",
+        time: "",
+        reason: "",
+        notes: "",
+    });
+
     const handleAcceptAppointment = (appointment) => {
-        const updatedAppointment = {
-            ...appointment,
-            status: "CONFIRMED",
-            confirmedAt: new Date().toISOString(),
-        };
-
-        const updatedAppointments = appointments.map(a =>
-            a.id === appointment.id ? updatedAppointment : a
-        );
-
-        saveAppointmentsToLocal(updatedAppointments);
-        showNotification(`Appointment with ${appointment.patientName} has been accepted`, "success");
+        updateAppointmentStatus(appointment.id, "CONFIRMED");
     };
 
     const handleRejectAppointment = (appointment) => {
         if (window.confirm(`Are you sure you want to reject this appointment with ${appointment.patientName}?`)) {
-            const updatedAppointment = {
-                ...appointment,
-                status: "CANCELLED",
-                cancelledAt: new Date().toISOString(),
-                cancellationReason: "Rejected by doctor",
-            };
-
-            const updatedAppointments = appointments.map(a =>
-                a.id === appointment.id ? updatedAppointment : a
-            );
-
-            saveAppointmentsToLocal(updatedAppointments);
-            showNotification(`Appointment with ${appointment.patientName} has been rejected`, "warning");
+            updateAppointmentStatus(appointment.id, "CANCELLED");
         }
     };
 
     const handleCompleteAppointment = (appointment) => {
         if (window.confirm(`Mark appointment with ${appointment.patientName} as completed?`)) {
-            const updatedAppointment = {
-                ...appointment,
-                status: "COMPLETED",
-                completedAt: new Date().toISOString(),
-            };
-
-            const updatedAppointments = appointments.map(a =>
-                a.id === appointment.id ? updatedAppointment : a
-            );
-
-            saveAppointmentsToLocal(updatedAppointments);
-            showNotification(`Appointment with ${appointment.patientName} marked as completed`, "success");
+            updateAppointmentStatus(appointment.id, "COMPLETED");
         }
     };
 
@@ -301,71 +219,117 @@ const Appointments = () => {
         setShowDetailsModal(true);
     };
 
-    const handleRequestAppointment = () => {
-        // For patients to request new appointment
+    const handleRequestAppointment = async () => {
         if (!formData.doctorId || !formData.date || !formData.time) {
             showNotification("Please fill all required fields", "danger");
             return;
         }
 
-        const selectedDoctor = doctors.find(d => d.id === parseInt(formData.doctorId));
+        try {
+            const selectedDoctor = doctors.find(d => d.id === parseInt(formData.doctorId));
 
-        const newAppointment = {
-            id: Date.now(),
-            patientId: user?.id || Math.floor(Math.random() * 1000),
-            patientName: formData.patientName || user?.name || "Patient",
-            patientEmail: formData.patientEmail || user?.email,
-            patientPhone: formData.patientPhone || "",
-            doctorId: parseInt(formData.doctorId),
-            doctorName: selectedDoctor?.name,
-            doctorSpecialty: selectedDoctor?.specialty,
-            date: formData.date,
-            time: formData.time,
-            endTime: addMinutesToTime(formData.time, 30),
-            reason: formData.reason,
-            symptoms: formData.symptoms,
-            notes: formData.notes,
-            status: "PENDING",
-            type: "In-person",
-            location: "Main Clinic",
-            createdAt: new Date().toISOString(),
-            completedAt: null,
-        };
+            const appointmentDateTime = `${formData.date}T${formData.time}:00`;
 
-        const updatedAppointments = [newAppointment, ...appointments];
-        saveAppointmentsToLocal(updatedAppointments);
-        showNotification("Appointment request sent successfully!", "success");
-        setShowModal(false);
-        resetForm();
+            const newAppointment = {
+                patientId: user.id,
+                doctorId: parseInt(formData.doctorId),
+                patientName: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || "Patient",
+                doctorName: selectedDoctor ? `Dr. ${selectedDoctor.firstName} ${selectedDoctor.lastName}` : "Doctor",
+                specialty: selectedDoctor?.specialty || "General",
+                appointmentDateTime: appointmentDateTime,
+                status: "PENDING",
+                patientEmail: user.email || "",
+                patientPhone: user.phone || "",
+                location: "Main Clinic",
+                notes: formData.reason || formData.notes,
+                billingStatus: "PENDING",
+                fee: 100.0
+            };
+
+            console.log("Creating appointment:", newAppointment);
+
+            const response = await fetch(`${API_BASE_URL}/api/appointments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(newAppointment)
+            });
+
+            if (response.ok) {
+                const createdAppointment = await response.json();
+                console.log("Appointment created:", createdAppointment);
+                showNotification("Appointment request sent successfully!", "success");
+                setShowModal(false);
+                resetForm();
+                loadAppointments();
+            } else {
+                const errorData = await response.json();
+                console.error("API Error:", errorData);
+                showNotification(errorData.message || errorData.error || "Failed to create appointment", "danger");
+            }
+        } catch (error) {
+            console.error("Error creating appointment:", error);
+            showNotification("Failed to create appointment: " + error.message, "danger");
+        }
     };
 
-    const addMinutesToTime = (time, minutes) => {
-        // Convert time like "10:00 AM" to add minutes
-        const [timeStr, modifier] = time.split(' ');
-        let [hours, mins] = timeStr.split(':').map(Number);
+    const updateAppointmentStatus = async (id, status) => {
+        setLoading(true);
+        try {
+            const appointment = appointments.find(a => a.id === id);
+            if (!appointment) {
+                showNotification("Appointment not found", "danger");
+                return;
+            }
 
-        if (modifier === 'PM' && hours !== 12) hours += 12;
-        if (modifier === 'AM' && hours === 12) hours = 0;
+            const updateData = {
+                patientId: appointment.patientId,
+                doctorId: appointment.doctorId,
+                patientName: appointment.patientName,
+                doctorName: appointment.doctorName,
+                specialty: appointment.specialty,
+                appointmentDateTime: appointment.appointmentDateTime,
+                status: status,
+                patientEmail: appointment.patientEmail,
+                patientPhone: appointment.patientPhone,
+                location: appointment.location,
+                notes: appointment.notes,
+                billingStatus: appointment.billingStatus,
+                fee: appointment.fee
+            };
 
-        const totalMinutes = hours * 60 + mins + minutes;
-        const newHours = Math.floor(totalMinutes / 60);
-        const newMins = totalMinutes % 60;
-        const newModifier = newHours >= 12 ? 'PM' : 'AM';
-        const displayHours = newHours % 12 || 12;
+            const response = await fetch(`${API_BASE_URL}/api/appointments/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateData)
+            });
 
-        return `${displayHours}:${newMins.toString().padStart(2, '0')} ${newModifier}`;
+            if (response.ok) {
+                showNotification(`Appointment marked as ${status.toLowerCase()}`, "success");
+                loadAppointments();
+            } else {
+                const errorData = await response.json();
+                showNotification(errorData.message || "Failed to update status", "danger");
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+            showNotification("Failed to update status: " + error.message, "danger");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const resetForm = () => {
         setFormData({
-            patientName: "",
-            patientEmail: "",
             doctorId: "",
-            doctorName: "",
             date: "",
             time: "",
             reason: "",
-            symptoms: "",
             notes: "",
         });
     };
@@ -392,25 +356,11 @@ const Appointments = () => {
         }
     };
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    const formatTime = (timeString) => {
-        return timeString;
-    };
-
     // Pagination
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     const currentItems = filteredAppointments.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredAppointments.length / itemsPerPage);
-
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     // Statistics
@@ -428,7 +378,6 @@ const Appointments = () => {
                         <strong className="me-auto">
                             {toastVariant === 'success' && <CheckCircle size={18} />}
                             {toastVariant === 'danger' && <AlertCircle size={18} />}
-                            {toastVariant === 'warning' && <AlertCircle size={18} />}
                         </strong>
                     </Toast.Header>
                     <Toast.Body>{toastMessage}</Toast.Body>
@@ -457,6 +406,14 @@ const Appointments = () => {
                                         Request Appointment
                                     </Button>
                                 )}
+                                <Button
+                                    variant="outline-secondary"
+                                    onClick={loadAppointments}
+                                    className="d-flex align-items-center gap-2"
+                                >
+                                    <RefreshCw size={18} />
+                                    Refresh
+                                </Button>
                             </div>
                         </Card.Body>
                     </Card>
@@ -532,15 +489,8 @@ const Appointments = () => {
                 <Col>
                     <Card className="shadow-sm border-0">
                         <Card.Body>
-                            {/* Tabs */}
-                            <Tabs
-                                activeKey={activeTab}
-                                onSelect={(k) => setActiveTab(k)}
-                                className="mb-4"
-                            >
-                                <Tab eventKey="requests" title="Pending Requests">
-                                    {isDoctor && <Badge bg="warning" className="ms-2">{pendingAppointments}</Badge>}
-                                </Tab>
+                            <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-4">
+                                <Tab eventKey="requests" title="Pending Requests" />
                                 <Tab eventKey="upcoming" title="Upcoming" />
                                 <Tab eventKey="completed" title="Completed" />
                                 <Tab eventKey="cancelled" title="Cancelled" />
@@ -550,53 +500,15 @@ const Appointments = () => {
                             {/* Search and Filter */}
                             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                                 <div className="d-flex gap-2 flex-wrap">
-                                    <Button
-                                        variant={statusFilter === 'all' ? 'primary' : 'light'}
-                                        onClick={() => setStatusFilter('all')}
-                                        size="sm"
-                                    >
-                                        All
-                                    </Button>
-                                    <Button
-                                        variant={statusFilter === 'pending' ? 'primary' : 'light'}
-                                        onClick={() => setStatusFilter('pending')}
-                                        size="sm"
-                                    >
-                                        Pending
-                                    </Button>
-                                    <Button
-                                        variant={statusFilter === 'confirmed' ? 'primary' : 'light'}
-                                        onClick={() => setStatusFilter('confirmed')}
-                                        size="sm"
-                                    >
-                                        Confirmed
-                                    </Button>
-                                    <Button
-                                        variant={statusFilter === 'completed' ? 'primary' : 'light'}
-                                        onClick={() => setStatusFilter('completed')}
-                                        size="sm"
-                                    >
-                                        Completed
-                                    </Button>
-                                    <Button
-                                        variant={statusFilter === 'cancelled' ? 'primary' : 'light'}
-                                        onClick={() => setStatusFilter('cancelled')}
-                                        size="sm"
-                                    >
-                                        Cancelled
-                                    </Button>
+                                    <Button variant={statusFilter === 'all' ? 'primary' : 'light'} onClick={() => setStatusFilter('all')} size="sm">All Status</Button>
+                                    <Button variant={statusFilter === 'pending' ? 'primary' : 'light'} onClick={() => setStatusFilter('pending')} size="sm">Pending</Button>
+                                    <Button variant={statusFilter === 'confirmed' ? 'primary' : 'light'} onClick={() => setStatusFilter('confirmed')} size="sm">Confirmed</Button>
+                                    <Button variant={statusFilter === 'completed' ? 'primary' : 'light'} onClick={() => setStatusFilter('completed')} size="sm">Completed</Button>
+                                    <Button variant={statusFilter === 'cancelled' ? 'primary' : 'light'} onClick={() => setStatusFilter('cancelled')} size="sm">Cancelled</Button>
                                 </div>
-
                                 <InputGroup style={{ maxWidth: '300px' }}>
-                                    <InputGroup.Text>
-                                        <Search size={18} />
-                                    </InputGroup.Text>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Search appointments..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
+                                    <InputGroup.Text><Search size={18} /></InputGroup.Text>
+                                    <Form.Control type="text" placeholder="Search appointments..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                                 </InputGroup>
                             </div>
 
@@ -610,23 +522,17 @@ const Appointments = () => {
                                 <div className="text-center py-5">
                                     <CalendarIcon size={48} className="text-muted mb-3" />
                                     <h5>No Appointments Found</h5>
-                                    <p className="text-muted">
-                                        {isDoctor ? 'No appointment requests at the moment' : 'No appointments scheduled'}
-                                    </p>
-                                    {isPatient && (
-                                        <Button variant="primary" onClick={() => setShowModal(true)}>
-                                            Request an Appointment
-                                        </Button>
-                                    )}
+                                    <p className="text-muted">{isDoctor ? 'No appointment requests at the moment' : 'No appointments scheduled'}</p>
+                                    {isPatient && (<Button variant="primary" onClick={() => setShowModal(true)}>Request an Appointment</Button>)}
                                 </div>
                             ) : (
                                 <div className="table-responsive">
                                     <Table hover className="mb-0">
                                         <thead className="bg-light">
                                         <tr>
-                                            <th className="px-4 py-3">Patient/Doctor</th>
+                                            <th className="px-4 py-3">{isDoctor ? "Patient" : "Doctor"}</th>
                                             <th className="px-4 py-3">Date & Time</th>
-                                            <th className="px-4 py-3">Reason</th>
+                                            <th className="px-4 py-3">Reason/Specialty</th>
                                             <th className="px-4 py-3">Type</th>
                                             <th className="px-4 py-3">Status</th>
                                             <th className="px-4 py-3">Actions</th>
@@ -636,73 +542,29 @@ const Appointments = () => {
                                         {currentItems.map((appointment) => (
                                             <tr key={appointment.id}>
                                                 <td className="px-4 py-3 align-middle">
-                                                    <div className="fw-semibold">
-                                                        {isDoctor ? appointment.patientName : appointment.doctorName}
-                                                    </div>
-                                                    <small className="text-muted">
-                                                        {isDoctor ? appointment.patientEmail : appointment.doctorSpecialty}
-                                                    </small>
+                                                    <div className="fw-semibold">{isDoctor ? appointment.patientName : appointment.doctorName}</div>
+                                                    <small className="text-muted">{isDoctor ? appointment.patientEmail : appointment.specialty}</small>
                                                 </td>
                                                 <td className="px-4 py-3 align-middle">
-                                                    <div>{formatDate(appointment.date)}</div>
+                                                    <div>{appointment.date}</div>
                                                     <small className="text-muted">{appointment.time}</small>
                                                 </td>
                                                 <td className="px-4 py-3 align-middle">
-                                                    <div className="text-truncate" style={{ maxWidth: '200px' }}>
-                                                        {appointment.reason}
-                                                    </div>
+                                                    <div className="text-truncate" style={{ maxWidth: '200px' }}>{appointment.reason || appointment.specialty}</div>
                                                 </td>
-                                                <td className="px-4 py-3 align-middle">
-                                                    <Badge bg="secondary">{appointment.type}</Badge>
-                                                </td>
-                                                <td className="px-4 py-3 align-middle">
-                                                    {getStatusBadge(appointment.status)}
-                                                </td>
+                                                <td className="px-4 py-3 align-middle"><Badge bg="secondary">{appointment.type}</Badge></td>
+                                                <td className="px-4 py-3 align-middle">{getStatusBadge(appointment.status)}</td>
                                                 <td className="px-4 py-3 align-middle">
                                                     <div className="d-flex gap-2">
-                                                        <Button
-                                                            variant="outline-info"
-                                                            size="sm"
-                                                            onClick={() => handleViewDetails(appointment)}
-                                                            className="d-flex align-items-center gap-1"
-                                                        >
-                                                            <Eye size={16} />
-                                                            View
-                                                        </Button>
-
+                                                        <Button variant="outline-info" size="sm" onClick={() => handleViewDetails(appointment)} className="d-flex align-items-center gap-1"><Eye size={16} /> View</Button>
                                                         {isDoctor && appointment.status === 'PENDING' && (
                                                             <>
-                                                                <Button
-                                                                    variant="outline-success"
-                                                                    size="sm"
-                                                                    onClick={() => handleAcceptAppointment(appointment)}
-                                                                    className="d-flex align-items-center gap-1"
-                                                                >
-                                                                    <CheckCircle size={16} />
-                                                                    Accept
-                                                                </Button>
-                                                                <Button
-                                                                    variant="outline-danger"
-                                                                    size="sm"
-                                                                    onClick={() => handleRejectAppointment(appointment)}
-                                                                    className="d-flex align-items-center gap-1"
-                                                                >
-                                                                    <XCircle size={16} />
-                                                                    Reject
-                                                                </Button>
+                                                                <Button variant="outline-success" size="sm" onClick={() => handleAcceptAppointment(appointment)} className="d-flex align-items-center gap-1"><CheckCircle size={16} /> Accept</Button>
+                                                                <Button variant="outline-danger" size="sm" onClick={() => handleRejectAppointment(appointment)} className="d-flex align-items-center gap-1"><XCircle size={16} /> Reject</Button>
                                                             </>
                                                         )}
-
                                                         {isDoctor && appointment.status === 'CONFIRMED' && (
-                                                            <Button
-                                                                variant="outline-success"
-                                                                size="sm"
-                                                                onClick={() => handleCompleteAppointment(appointment)}
-                                                                className="d-flex align-items-center gap-1"
-                                                            >
-                                                                <CheckSquare size={16} />
-                                                                Complete
-                                                            </Button>
+                                                            <Button variant="outline-success" size="sm" onClick={() => handleCompleteAppointment(appointment)} className="d-flex align-items-center gap-1"><CheckSquare size={16} /> Complete</Button>
                                                         )}
                                                     </div>
                                                 </td>
@@ -719,17 +581,7 @@ const Appointments = () => {
                                     <Pagination>
                                         <Pagination.First onClick={() => paginate(1)} disabled={currentPage === 1} />
                                         <Pagination.Prev onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} />
-
-                                        {[...Array(totalPages)].map((_, index) => (
-                                            <Pagination.Item
-                                                key={index + 1}
-                                                active={index + 1 === currentPage}
-                                                onClick={() => paginate(index + 1)}
-                                            >
-                                                {index + 1}
-                                            </Pagination.Item>
-                                        ))}
-
+                                        {[...Array(totalPages)].map((_, index) => (<Pagination.Item key={index + 1} active={index + 1 === currentPage} onClick={() => paginate(index + 1)}>{index + 1}</Pagination.Item>))}
                                         <Pagination.Next onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages} />
                                         <Pagination.Last onClick={() => paginate(totalPages)} disabled={currentPage === totalPages} />
                                     </Pagination>
@@ -740,282 +592,60 @@ const Appointments = () => {
                 </Col>
             </Row>
 
-            {/* Request Appointment Modal (for patients) */}
+            {/* Request Appointment Modal - keep same as before */}
             <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
-                <Modal.Header closeButton className="bg-primary text-white">
-                    <Modal.Title>Request New Appointment</Modal.Title>
-                </Modal.Header>
+                <Modal.Header closeButton className="bg-primary text-white"><Modal.Title>Request New Appointment</Modal.Title></Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Your Name *">
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Enter your name"
-                                        value={formData.patientName}
-                                        onChange={(e) => setFormData({...formData, patientName: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Your Email *">
-                                    <Form.Control
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        value={formData.patientEmail}
-                                        onChange={(e) => setFormData({...formData, patientEmail: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-
-                        <Row className="mb-3">
-                            <Col md={6}>
+                            <Col md={12}>
                                 <FloatingLabel label="Select Doctor *">
-                                    <Form.Select
-                                        value={formData.doctorId}
-                                        onChange={(e) => setFormData({...formData, doctorId: e.target.value})}
-                                    >
+                                    <Form.Select value={formData.doctorId} onChange={(e) => setFormData({...formData, doctorId: e.target.value})}>
                                         <option value="">Choose a doctor</option>
-                                        {doctors.filter(d => d.available).map(doctor => (
-                                            <option key={doctor.id} value={doctor.id}>
-                                                {doctor.name} - {doctor.specialty}
-                                            </option>
-                                        ))}
-                                    </Form.Select>
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Appointment Type">
-                                    <Form.Select>
-                                        <option>In-person</option>
-                                        <option>Telemedicine</option>
+                                        {doctors.map(doctor => (<option key={doctor.id} value={doctor.id}>Dr. {doctor.firstName} {doctor.lastName} - {doctor.specialty}</option>))}
                                     </Form.Select>
                                 </FloatingLabel>
                             </Col>
                         </Row>
-
                         <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Preferred Date *">
-                                    <Form.Control
-                                        type="date"
-                                        value={formData.date}
-                                        onChange={(e) => setFormData({...formData, date: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Preferred Time *">
-                                    <Form.Control
-                                        type="time"
-                                        value={formData.time}
-                                        onChange={(e) => setFormData({...formData, time: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
+                            <Col md={6}><FloatingLabel label="Preferred Date *"><Form.Control type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} /></FloatingLabel></Col>
+                            <Col md={6}><FloatingLabel label="Preferred Time *"><Form.Control type="time" value={formData.time} onChange={(e) => setFormData({...formData, time: e.target.value})} /></FloatingLabel></Col>
                         </Row>
-
                         <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Reason for Visit *">
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Brief reason for the appointment"
-                                        value={formData.reason}
-                                        onChange={(e) => setFormData({...formData, reason: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
+                            <Col md={12}><FloatingLabel label="Reason for Visit *"><Form.Control type="text" placeholder="Brief reason for the appointment" value={formData.reason} onChange={(e) => setFormData({...formData, reason: e.target.value})} /></FloatingLabel></Col>
                         </Row>
-
                         <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Symptoms (Optional)">
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={3}
-                                        placeholder="Describe your symptoms"
-                                        value={formData.symptoms}
-                                        onChange={(e) => setFormData({...formData, symptoms: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-
-                        <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Additional Notes (Optional)">
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={2}
-                                        placeholder="Any additional information"
-                                        value={formData.notes}
-                                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
+                            <Col md={12}><FloatingLabel label="Additional Notes (Optional)"><Form.Control as="textarea" rows={3} placeholder="Any additional information" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} /></FloatingLabel></Col>
                         </Row>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleRequestAppointment}>
-                        Submit Request
-                    </Button>
+                    <Button variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
+                    <Button variant="primary" onClick={handleRequestAppointment}>Submit Request</Button>
                 </Modal.Footer>
             </Modal>
 
-            {/* View Appointment Details Modal */}
+            {/* View Appointment Details Modal - keep same as before */}
             <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)} size="lg">
-                <Modal.Header closeButton className="bg-info text-white">
-                    <Modal.Title>Appointment Details</Modal.Title>
-                </Modal.Header>
+                <Modal.Header closeButton className="bg-info text-white"><Modal.Title>Appointment Details</Modal.Title></Modal.Header>
                 <Modal.Body>
                     {selectedAppointment && (
                         <div>
                             <Row className="mb-4">
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light">
-                                        <Card.Body>
-                                            <h6 className="text-muted mb-3">Patient Information</h6>
-                                            <div className="mb-2">
-                                                <User size={16} className="text-muted me-2" />
-                                                <strong>{selectedAppointment.patientName}</strong>
-                                            </div>
-                                            <div className="mb-2">
-                                                <Mail size={16} className="text-muted me-2" />
-                                                {selectedAppointment.patientEmail}
-                                            </div>
-                                            <div className="mb-2">
-                                                <Phone size={16} className="text-muted me-2" />
-                                                {selectedAppointment.patientPhone || "Not provided"}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light">
-                                        <Card.Body>
-                                            <h6 className="text-muted mb-3">Doctor Information</h6>
-                                            <div className="mb-2">
-                                                <User size={16} className="text-muted me-2" />
-                                                <strong>{selectedAppointment.doctorName}</strong>
-                                            </div>
-                                            <div className="mb-2">
-                                                <FileText size={16} className="text-muted me-2" />
-                                                {selectedAppointment.doctorSpecialty}
-                                            </div>
-                                            <div className="mb-2">
-                                                <MapPin size={16} className="text-muted me-2" />
-                                                {selectedAppointment.location}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
+                                <Col md={6}><Card className="border-0 bg-light"><Card.Body><h6 className="text-muted mb-3">Patient Information</h6><div className="mb-2"><User size={16} className="text-muted me-2" /><strong>{selectedAppointment.patientName}</strong></div><div className="mb-2"><Mail size={16} className="text-muted me-2" />{selectedAppointment.patientEmail || "Not provided"}</div><div className="mb-2"><Phone size={16} className="text-muted me-2" />{selectedAppointment.patientPhone || "Not provided"}</div></Card.Body></Card></Col>
+                                <Col md={6}><Card className="border-0 bg-light"><Card.Body><h6 className="text-muted mb-3">Doctor Information</h6><div className="mb-2"><User size={16} className="text-muted me-2" /><strong>{selectedAppointment.doctorName}</strong></div><div className="mb-2"><FileText size={16} className="text-muted me-2" />{selectedAppointment.specialty || "General"}</div><div className="mb-2"><MapPin size={16} className="text-muted me-2" />{selectedAppointment.location || "Main Clinic"}</div></Card.Body></Card></Col>
                             </Row>
-
                             <Row className="mb-4">
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light">
-                                        <Card.Body>
-                                            <h6 className="text-muted mb-3">Appointment Details</h6>
-                                            <div className="mb-2">
-                                                <Calendar size={16} className="text-muted me-2" />
-                                                {formatDate(selectedAppointment.date)}
-                                            </div>
-                                            <div className="mb-2">
-                                                <Clock size={16} className="text-muted me-2" />
-                                                {selectedAppointment.time} - {selectedAppointment.endTime}
-                                            </div>
-                                            <div className="mb-2">
-                                                <Badge bg="secondary">{selectedAppointment.type}</Badge>
-                                            </div>
-                                            <div className="mb-2">
-                                                Status: {getStatusBadge(selectedAppointment.status)}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light">
-                                        <Card.Body>
-                                            <h6 className="text-muted mb-3">Medical Information</h6>
-                                            <div className="mb-2">
-                                                <strong>Reason:</strong> {selectedAppointment.reason}
-                                            </div>
-                                            <div className="mb-2">
-                                                <strong>Symptoms:</strong> {selectedAppointment.symptoms || "None reported"}
-                                            </div>
-                                            <div className="mb-2">
-                                                <strong>Notes:</strong> {selectedAppointment.notes || "No additional notes"}
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                            <Row>
-                                <Col>
-                                    <Card className="border-0 bg-light">
-                                        <Card.Body>
-                                            <h6 className="text-muted mb-3">Timeline</h6>
-                                            <div className="mb-2">
-                                                <strong>Requested:</strong> {formatDate(selectedAppointment.createdAt)} at {new Date(selectedAppointment.createdAt).toLocaleTimeString()}
-                                            </div>
-                                            {selectedAppointment.confirmedAt && (
-                                                <div className="mb-2">
-                                                    <strong>Confirmed:</strong> {formatDate(selectedAppointment.confirmedAt)} at {new Date(selectedAppointment.confirmedAt).toLocaleTimeString()}
-                                                </div>
-                                            )}
-                                            {selectedAppointment.completedAt && (
-                                                <div className="mb-2">
-                                                    <strong>Completed:</strong> {formatDate(selectedAppointment.completedAt)} at {new Date(selectedAppointment.completedAt).toLocaleTimeString()}
-                                                </div>
-                                            )}
-                                            {selectedAppointment.cancelledAt && (
-                                                <div className="mb-2">
-                                                    <strong>Cancelled:</strong> {formatDate(selectedAppointment.cancelledAt)} at {new Date(selectedAppointment.cancelledAt).toLocaleTimeString()}
-                                                </div>
-                                            )}
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
+                                <Col md={6}><Card className="border-0 bg-light"><Card.Body><h6 className="text-muted mb-3">Appointment Details</h6><div className="mb-2"><Calendar size={16} className="text-muted me-2" />{selectedAppointment.date}</div><div className="mb-2"><Clock size={16} className="text-muted me-2" />{selectedAppointment.time}</div><div className="mb-2"><Badge bg="secondary">{selectedAppointment.type}</Badge></div><div className="mb-2">Status: {getStatusBadge(selectedAppointment.status)}</div></Card.Body></Card></Col>
+                                <Col md={6}><Card className="border-0 bg-light"><Card.Body><h6 className="text-muted mb-3">Medical Information</h6><div className="mb-2"><strong>Reason:</strong> {selectedAppointment.reason}</div><div className="mb-2"><strong>Notes:</strong> {selectedAppointment.notes || "No additional notes"}</div><div className="mb-2"><strong>Fee:</strong> ${selectedAppointment.fee || 0}</div><div className="mb-2"><strong>Billing Status:</strong> {selectedAppointment.billingStatus}</div></Card.Body></Card></Col>
                             </Row>
                         </div>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
-                        Close
-                    </Button>
-                    {isDoctor && selectedAppointment?.status === 'PENDING' && (
-                        <ButtonGroup>
-                            <Button variant="success" onClick={() => {
-                                handleAcceptAppointment(selectedAppointment);
-                                setShowDetailsModal(false);
-                            }}>
-                                Accept
-                            </Button>
-                            <Button variant="danger" onClick={() => {
-                                handleRejectAppointment(selectedAppointment);
-                                setShowDetailsModal(false);
-                            }}>
-                                Reject
-                            </Button>
-                        </ButtonGroup>
-                    )}
-                    {isDoctor && selectedAppointment?.status === 'CONFIRMED' && (
-                        <Button variant="success" onClick={() => {
-                            handleCompleteAppointment(selectedAppointment);
-                            setShowDetailsModal(false);
-                        }}>
-                            Mark as Completed
-                        </Button>
-                    )}
+                    <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>Close</Button>
+                    {isDoctor && selectedAppointment?.status === 'PENDING' && (<ButtonGroup><Button variant="success" onClick={() => { handleAcceptAppointment(selectedAppointment); setShowDetailsModal(false); }}>Accept</Button><Button variant="danger" onClick={() => { handleRejectAppointment(selectedAppointment); setShowDetailsModal(false); }}>Reject</Button></ButtonGroup>)}
+                    {isDoctor && selectedAppointment?.status === 'CONFIRMED' && (<Button variant="success" onClick={() => { handleCompleteAppointment(selectedAppointment); setShowDetailsModal(false); }}>Mark as Completed</Button>)}
                 </Modal.Footer>
             </Modal>
         </Container>

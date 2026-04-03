@@ -14,7 +14,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 
 const Profile = () => {
-    const { user, updateUser } = useAuth();
+    const { user, token } = useAuth();
     const [loading, setLoading] = useState(false);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -111,33 +111,64 @@ const Profile = () => {
 
     const [editFormData, setEditFormData] = useState({ ...profile });
 
-    // Load profile data from localStorage on mount
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+    // Load profile data from API on mount
     useEffect(() => {
-        loadProfileData();
-    }, []);
+        if (user?.id) {
+            loadProfileData();
+        }
+    }, [user?.id]);
 
-    const loadProfileData = () => {
+    const loadProfileData = async () => {
         setLoading(true);
-        const storedProfile = localStorage.getItem('doctorProfile');
-        if (storedProfile) {
-            setProfile(JSON.parse(storedProfile));
-            setEditFormData(JSON.parse(storedProfile));
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/doctors/${user.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setProfile(data);
+                setEditFormData(data);
+            } else {
+                console.log("Profile not found, using defaults");
+            }
+        } catch (error) {
+            console.error("Error loading profile:", error);
+            showNotification("Failed to load profile data", "danger");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
-    const saveProfileData = (updatedProfile) => {
-        localStorage.setItem('doctorProfile', JSON.stringify(updatedProfile));
-        setProfile(updatedProfile);
-        if (updateUser) {
-            updateUser({ name: `${updatedProfile.firstName} ${updatedProfile.lastName}`, ...updatedProfile });
-        }
-    };
+    const handleProfileUpdate = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/doctors/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ ...editFormData, id: user.id })
+            });
 
-    const handleProfileUpdate = () => {
-        saveProfileData(editFormData);
-        showNotification("Profile updated successfully!", "success");
-        setShowEditModal(false);
+            if (response.ok) {
+                const updatedData = await response.json();
+                setProfile(updatedData);
+                showNotification("Profile updated successfully!", "success");
+                setShowEditModal(false);
+            } else {
+                throw new Error("Failed to update profile");
+            }
+        } catch (error) {
+            console.error("Error updating profile:", error);
+            showNotification("Failed to update profile", "danger");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handlePhotoUpload = (event) => {

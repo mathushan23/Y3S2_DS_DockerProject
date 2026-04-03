@@ -6,7 +6,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 
 import Appointments from "./pages/Doctor/Appointments.jsx";
-import Telemedicine from "./pages/Doctor/Telemedicine.jsx";
+
 import UserManagement from "./pages/UserManagement";
 import Prescriptions from "./pages/Doctor/Prescriptions.jsx";
 import Availability from "./pages/Doctor/Availability.jsx";
@@ -33,7 +33,7 @@ export default function App() {
             <Route path="patientreport" element={<PatientReport />} />
             <Route path="prescriptions" element={<Prescriptions />} />
             <Route path="availability" element={<Availability />} />
-            <Route path="telemedicine" element={<Telemedicine />} />
+
             <Route path="users" element={<UserManagement />} />
 
           </Route>
