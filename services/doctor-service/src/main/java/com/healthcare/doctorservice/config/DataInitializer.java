@@ -23,10 +23,10 @@ public class DataInitializer implements CommandLineRunner {
     private final QualificationRepository qualificationRepository;
     private final WorkingHoursRepository workingHoursRepository;
 
-    public DataInitializer(DoctorRepository doctorRepository, 
-                           PrescriptionRepository prescriptionRepository,
-                           QualificationRepository qualificationRepository,
-                           WorkingHoursRepository workingHoursRepository) {
+    public DataInitializer(DoctorRepository doctorRepository,
+            PrescriptionRepository prescriptionRepository,
+            QualificationRepository qualificationRepository,
+            WorkingHoursRepository workingHoursRepository) {
         this.doctorRepository = doctorRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.qualificationRepository = qualificationRepository;
@@ -63,8 +63,9 @@ public class DataInitializer implements CommandLineRunner {
                     .totalReviews(342)
                     .build();
             doctorRepository.save(doctor);
-            
-            // Also seed for doctor ID 4 since that seems to be assigned to Sarah Wilson in auth_service
+
+            // Also seed for doctor ID 4 since that seems to be assigned to Sarah Wilson in
+            // auth_service
             Doctor doctor4 = Doctor.builder()
                     .id(4L)
                     .firstName("Sarah")
@@ -92,37 +93,8 @@ public class DataInitializer implements CommandLineRunner {
                     .totalReviews(342)
                     .build();
             doctorRepository.save(doctor4);
-            
-            // Seed for Shanuja (ID 3 based on auth_service seeding order)
-            Doctor doctor3 = Doctor.builder()
-                    .id(3L)
-                    .firstName("Shanuja")
-                    .lastName("")
-                    .email("shanukanthan41@gmail.com")
-                    .phone("+94 (xxx) xxx-xxxx")
-                    .specialty("General Physician")
-                    .address("Jaffna, Sri Lanka")
-                    .dateOfBirth("1995-10-10")
-                    .gender("Male")
-                    .experience(5)
-                    .hospitalName("Shanuja Medical Center")
-                    .clinicName("Health Plus")
-                    .consultationFee(50.0)
-                    .emergencyFee(100.0)
-                    .bio("Doctor Shanuja is a health specialist dedicated to patient wellness and digital healthcare transformation.")
-                    .licenseNumber("LK-MC-2024-1234")
-                    .licenseExpiry("2030-12-31")
-                    .verificationStatus("verified")
-                    .boardCertified(true)
-                    .totalPatients(150)
-                    .successfulTreatments(140)
-                    .satisfactionRate(99.0)
-                    .averageRating(4.9)
-                    .totalReviews(45)
-                    .build();
-            doctorRepository.save(doctor3);
-            
-            System.out.println("Default doctor profiles created for IDs 1, 4 and Shanuja (3).");
+
+            System.out.println("Default doctor profiles created for IDs 1 and 4.");
         }
 
         if (qualificationRepository.count() == 0) {
@@ -147,7 +119,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (workingHoursRepository.count() == 0) {
-            String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+            String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
             for (Long id : List.of(1L, 4L)) {
                 for (String day : days) {
                     WorkingHours hours = WorkingHours.builder()
@@ -173,7 +145,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
 
             Prescription prescription = Prescription.builder()
-                    .patientId(2L) 
+                    .patientId(2L)
                     .patientName("John Doe")
                     .patientEmail("john.doe@example.com")
                     .doctorId(4L) // Seed for ID 4 as well
@@ -186,7 +158,7 @@ public class DataInitializer implements CommandLineRunner {
                     .refills(1)
                     .medicines(List.of(medicine))
                     .build();
-            
+
             prescriptionRepository.save(prescription);
             System.out.println("Default prescription created.");
         }

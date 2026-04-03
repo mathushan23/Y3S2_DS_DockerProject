@@ -34,15 +34,7 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             userRepository.save(john);
 
-            AppUser shanuja = AppUser.builder()
-                    .fullName("Shanuja")
-                    .email("shanukanthan41@gmail.com")
-                    .password("password123")
-                    .role(UserRole.DOCTOR)
-                    .build();
-            userRepository.save(shanuja);
-
-            System.out.println("Default doctors and patient created in auth_db.");
+            System.out.println("Default doctor and patient created in auth_db.");
         }
     }
 }
