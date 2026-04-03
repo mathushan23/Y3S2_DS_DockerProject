@@ -36,6 +36,31 @@ const DoctorDashboard = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [topMedicines, setTopMedicines] = useState([]);
 
+  // Get the doctor's name from user context
+  const getDoctorName = () => {
+    if (user?.fullName) {
+      return user.fullName;
+    }
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    if (user?.name) {
+      return user.name;
+    }
+    return "Doctor";
+  };
+
+  // Get doctor's specialty from user context or default
+  const getDoctorSpecialty = () => {
+    if (user?.specialty) {
+      return user.specialty;
+    }
+    if (user?.specialization) {
+      return user.specialization;
+    }
+    return "Medical Professional";
+  };
+
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -49,7 +74,7 @@ const DoctorDashboard = () => {
     const storedPrescriptions = localStorage.getItem('prescriptions');
     const storedTelemedicine = localStorage.getItem('telemedicineRequests');
 
-    // Mock dashboard data
+    // Mock dashboard data (replace with API calls)
     const mockStats = {
       totalPatients: 1247,
       todayAppointments: 8,
@@ -301,10 +326,18 @@ const DoctorDashboard = () => {
               <Card.Body className="p-4">
                 <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                   <div>
-                    <h2 className="mb-1 fw-bold">Welcome back, Dr. {user?.name || 'Sarah Wilson'}! 👋</h2>
+                    <h2 className="mb-1 fw-bold">
+                      Welcome back, Dr. {getDoctorName()}! 👋
+                    </h2>
                     <p className="mb-0 opacity-75">
-                      Here's your practice overview for today. You have {stats.todayAppointments} appointments scheduled.
+                      {getDoctorSpecialty()} • Here's your practice overview for today.
+                      You have {stats.todayAppointments} appointments scheduled.
                     </p>
+                    {user?.email && (
+                        <small className="opacity-50 mt-1 d-block">
+                          {user.email}
+                        </small>
+                    )}
                   </div>
                   <Button variant="light" onClick={() => navigate('/appointments')}>
                     <Calendar size={18} className="me-2" />

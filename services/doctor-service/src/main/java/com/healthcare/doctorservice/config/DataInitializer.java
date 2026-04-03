@@ -93,7 +93,36 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             doctorRepository.save(doctor4);
             
-            System.out.println("Default doctor profiles created for IDs 1 and 4.");
+            // Seed for Shanuja (ID 3 based on auth_service seeding order)
+            Doctor doctor3 = Doctor.builder()
+                    .id(3L)
+                    .firstName("Shanuja")
+                    .lastName("")
+                    .email("shanukanthan41@gmail.com")
+                    .phone("+94 (xxx) xxx-xxxx")
+                    .specialty("General Physician")
+                    .address("Jaffna, Sri Lanka")
+                    .dateOfBirth("1995-10-10")
+                    .gender("Male")
+                    .experience(5)
+                    .hospitalName("Shanuja Medical Center")
+                    .clinicName("Health Plus")
+                    .consultationFee(50.0)
+                    .emergencyFee(100.0)
+                    .bio("Doctor Shanuja is a health specialist dedicated to patient wellness and digital healthcare transformation.")
+                    .licenseNumber("LK-MC-2024-1234")
+                    .licenseExpiry("2030-12-31")
+                    .verificationStatus("verified")
+                    .boardCertified(true)
+                    .totalPatients(150)
+                    .successfulTreatments(140)
+                    .satisfactionRate(99.0)
+                    .averageRating(4.9)
+                    .totalReviews(45)
+                    .build();
+            doctorRepository.save(doctor3);
+            
+            System.out.println("Default doctor profiles created for IDs 1, 4 and Shanuja (3).");
         }
 
         if (qualificationRepository.count() == 0) {
