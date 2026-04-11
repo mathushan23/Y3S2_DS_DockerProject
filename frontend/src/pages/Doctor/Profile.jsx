@@ -31,8 +31,7 @@ const Profile = () => {
     // Empty profile structure
     const [profile, setProfile] = useState({
         id: null,
-        firstName: "",
-        lastName: "",
+        fullName: "",
         email: "",
         phone: "",
         dateOfBirth: "",
@@ -99,8 +98,7 @@ const Profile = () => {
                 // Map backend data to frontend structure
                 const mappedProfile = {
                     id: data.id,
-                    firstName: data.firstName || "",
-                    lastName: data.lastName || "",
+                    fullName: data.fullName || "",
                     email: data.email || user.email || "",
                     phone: data.phone || "",
                     dateOfBirth: data.dateOfBirth || "",
@@ -145,7 +143,7 @@ const Profile = () => {
                         totalReviews: data.totalReviews || 0
                     },
                     bankDetails: {
-                        accountHolder: data.firstName && data.lastName ? `${data.firstName} ${data.lastName}` : "",
+                        accountHolder: data.fullName || "",
                         bankName: "Default Bank",
                         accountNumber: "****1234",
                         routingNumber: "****5678",
@@ -164,12 +162,10 @@ const Profile = () => {
             } else if (response.status === 404) {
                 console.log("Doctor profile not found, will create on first save");
                 // Initialize with user data from auth
-                const nameParts = user.fullName?.split(" ") || ["", ""];
                 const initialProfile = {
                     ...profile,
                     id: user.id,
-                    firstName: nameParts[0] || "",
-                    lastName: nameParts.slice(1).join(" ") || "",
+                    fullName: user.fullName || "",
                     email: user.email || "",
                 };
                 setProfile(initialProfile);
@@ -193,8 +189,7 @@ const Profile = () => {
             // Prepare data for backend
             const updatePayload = {
                 id: user.id,
-                firstName: editFormData.firstName,
-                lastName: editFormData.lastName,
+                fullName: editFormData.fullName,
                 email: editFormData.email,
                 phone: editFormData.phone,
                 specialty: editFormData.specialty,
@@ -224,7 +219,7 @@ const Profile = () => {
             let response;
 
             // Check if profile exists (has ID and was fetched)
-            if (profile.id && profile.firstName) {
+            if (profile.id && profile.fullName) {
                 // Update existing profile
                 response = await fetch(`${API_BASE_URL}/api/doctors/${user.id}`, {
                     method: 'PUT',
@@ -400,7 +395,7 @@ const Profile = () => {
                                         />
                                     </div>
                                     <div className="ms-3 mb-2">
-                                        <h2 className="mb-0">{profile.firstName} {profile.lastName}</h2>
+                            <h2 className="mb-0">{profile.fullName}</h2>
                                         <div className="d-flex align-items-center gap-2 mt-1">
                                             <Badge bg="primary">{profile.specialty || "General Physician"}</Badge>
                                             {getVerificationBadge(profile.verificationStatus)}
@@ -507,7 +502,7 @@ const Profile = () => {
                                                     <ListGroup variant="flush">
                                                         <ListGroup.Item className="bg-light d-flex justify-content-between">
                                                             <span className="text-muted">Full Name</span>
-                                                            <strong>{profile.firstName} {profile.lastName}</strong>
+                                                            <strong>{profile.fullName}</strong>
                                                         </ListGroup.Item>
                                                         <ListGroup.Item className="bg-light d-flex justify-content-between">
                                                             <span className="text-muted">Email</span>
@@ -655,21 +650,12 @@ const Profile = () => {
                     <Form>
                         <h6 className="mb-3">Personal Information</h6>
                         <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="First Name">
+                            <Col md={12}>
+                                <FloatingLabel label="Full Name">
                                     <Form.Control
                                         type="text"
-                                        value={editFormData.firstName || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, firstName: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Last Name">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.lastName || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, lastName: e.target.value})}
+                                        value={editFormData.fullName || ""}
+                                        onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
                                     />
                                 </FloatingLabel>
                             </Col>

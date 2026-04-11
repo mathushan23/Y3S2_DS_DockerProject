@@ -23,8 +23,7 @@ function getDoctorName(doctor) {
     return doctor.fullName;
   }
 
-  const name = [doctor.firstName, doctor.lastName].filter(Boolean).join(" ").trim();
-  return name || doctor.email || `Doctor ${doctor.id ?? ""}`.trim();
+  return doctor.email || `Doctor ${doctor.id ?? ""}`.trim();
 }
 
 function getDoctorSpecialty(doctor) {
@@ -174,8 +173,7 @@ export default function Appointments() {
 
     const patientName =
       user.fullName ||
-      user.name ||
-      [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
+      user.name;
 
     if (patientName) {
       setForm((current) => ({

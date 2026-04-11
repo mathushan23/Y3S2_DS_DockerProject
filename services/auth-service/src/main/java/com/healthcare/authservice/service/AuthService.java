@@ -16,6 +16,9 @@ import com.healthcare.authservice.exception.UserAlreadyExistsException;
 import com.healthcare.authservice.repository.AppUserRepository;
 import com.healthcare.authservice.repository.PasswordResetTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -70,7 +73,7 @@ public class AuthService {
         // Sync with role-specific services
         try {
             if (request.getRole() == UserRole.DOCTOR) {
-                createDoctorProfile(request);
+                createDoctorProfile(savedUser, request);
             } else if (request.getRole() == UserRole.PATIENT) {
                 createPatientProfile(request);
             }
@@ -176,15 +179,18 @@ public class AuthService {
         }
     }
 
-    private void createDoctorProfile(UserRequest request) {
+    private void createDoctorProfile(AppUser savedUser, UserRequest request) {
         Map<String, Object> doctorRequest = new HashMap<>();
+        doctorRequest.put("id", savedUser.getId());
         doctorRequest.put("fullName", request.getFullName());
         doctorRequest.put("specialty", request.getSpecialty() != null ? request.getSpecialty() : "General");
         doctorRequest.put("email", request.getEmail());
-        doctorRequest.put("phoneNumber", request.getPhoneNumber() != null ? request.getPhoneNumber() : "N/A");
-        doctorRequest.put("verified", false);
-        
-        restTemplate.postForObject(doctorServiceUrl + "/api/doctors", doctorRequest, Object.class);
+        doctorRequest.put("phone", savedUser.getPhoneNumber() != null && !savedUser.getPhoneNumber().isBlank()
+                ? savedUser.getPhoneNumber()
+                : "N/A");
+        doctorRequest.put("verificationStatus", "pending");
+
+        postJson(doctorServiceUrl + "/api/doctors", doctorRequest);
     }
 
     private void createPatientProfile(UserRequest request) {
@@ -197,8 +203,15 @@ public class AuthService {
         patientRequest.put("lastName", lastName);
         patientRequest.put("email", request.getEmail());
         patientRequest.put("phoneNumber", request.getPhoneNumber() != null ? request.getPhoneNumber() : "N/A");
-        
-        restTemplate.postForObject(patientServiceUrl + "/api/patients", patientRequest, Object.class);
+
+        postJson(patientServiceUrl + "/api/patients", patientRequest);
+    }
+
+    private void postJson(String url, Map<String, Object> payload) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+        restTemplate.postForObject(url, entity, Object.class);
     }
 
     public LoginResponse login(LoginRequest request) {

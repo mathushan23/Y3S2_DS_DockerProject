@@ -4,8 +4,7 @@ import java.util.List;
 
 public class DoctorResponse {
     private Long id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String email;
     private String phone;
     private String specialty;
@@ -33,10 +32,15 @@ public class DoctorResponse {
 
     public DoctorResponse() {}
 
-    public DoctorResponse(Long id, String firstName, String lastName, String email, String phone, String specialty, String address, String dateOfBirth, String gender, int experience, String hospitalName, String clinicName, double consultationFee, double emergencyFee, String bio, String licenseNumber, String licenseExpiry, String verificationStatus, boolean boardCertified, String profilePhotoUrl, List<WorkingHoursDTO> workingHours, List<QualificationDTO> qualifications, int totalPatients, int successfulTreatments, double satisfactionRate, double averageRating, int totalReviews) {
+    public DoctorResponse(Long id, String fullName, String email, String phone, String specialty, String address,
+                          String dateOfBirth, String gender, int experience, String hospitalName, String clinicName,
+                          double consultationFee, double emergencyFee, String bio, String licenseNumber,
+                          String licenseExpiry, String verificationStatus, boolean boardCertified,
+                          String profilePhotoUrl, List<WorkingHoursDTO> workingHours,
+                          List<QualificationDTO> qualifications, int totalPatients, int successfulTreatments,
+                          double satisfactionRate, double averageRating, int totalReviews) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.specialty = specialty;
@@ -69,10 +73,8 @@ public class DoctorResponse {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
@@ -124,8 +126,7 @@ public class DoctorResponse {
 
     public static class DoctorResponseBuilder {
         private Long id;
-        private String firstName;
-        private String lastName;
+        private String fullName;
         private String email;
         private String phone;
         private String specialty;
@@ -152,8 +153,7 @@ public class DoctorResponse {
         private int totalReviews;
 
         public DoctorResponseBuilder id(Long id) { this.id = id; return this; }
-        public DoctorResponseBuilder firstName(String firstName) { this.firstName = firstName; return this; }
-        public DoctorResponseBuilder lastName(String lastName) { this.lastName = lastName; return this; }
+        public DoctorResponseBuilder fullName(String fullName) { this.fullName = fullName; return this; }
         public DoctorResponseBuilder email(String email) { this.email = email; return this; }
         public DoctorResponseBuilder phone(String phone) { this.phone = phone; return this; }
         public DoctorResponseBuilder specialty(String specialty) { this.specialty = specialty; return this; }
@@ -180,7 +180,10 @@ public class DoctorResponse {
         public DoctorResponseBuilder totalReviews(int totalReviews) { this.totalReviews = totalReviews; return this; }
 
         public DoctorResponse build() {
-            return new DoctorResponse(id, firstName, lastName, email, phone, specialty, address, dateOfBirth, gender, experience, hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry, verificationStatus, boardCertified, profilePhotoUrl, workingHours, qualifications, totalPatients, successfulTreatments, satisfactionRate, averageRating, totalReviews);
+            return new DoctorResponse(id, fullName, email, phone, specialty, address, dateOfBirth, gender, experience,
+                    hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry,
+                    verificationStatus, boardCertified, profilePhotoUrl, workingHours, qualifications, totalPatients,
+                    successfulTreatments, satisfactionRate, averageRating, totalReviews);
         }
     }
 }
