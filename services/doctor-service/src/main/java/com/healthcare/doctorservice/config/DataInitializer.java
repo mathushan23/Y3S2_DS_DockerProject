@@ -38,8 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         if (doctorRepository.count() == 0) {
             Doctor doctor = Doctor.builder()
                     .id(1L)
-                    .firstName("Sarah")
-                    .lastName("Wilson")
+                    .fullName("Sarah Wilson")
                     .email("sarah.wilson@medical.com")
                     .phone("+1 (555) 123-4567")
                     .specialty("Cardiology")
@@ -68,8 +67,7 @@ public class DataInitializer implements CommandLineRunner {
             // auth_service
             Doctor doctor4 = Doctor.builder()
                     .id(4L)
-                    .firstName("Sarah")
-                    .lastName("Wilson")
+                    .fullName("Sarah Wilson")
                     .email("sarah.wilson@medical.com")
                     .phone("+1 (555) 123-4567")
                     .specialty("Cardiology")

@@ -13,6 +13,35 @@ const appointmentInitial = {
   notes: ""
 };
 
+function getDoctorName(doctor) {
+  if (!doctor) {
+    return "";
+  }
+
+  if (doctor.fullName) {
+    return doctor.fullName;
+  }
+
+  return doctor.email || `Doctor ${doctor.id ?? ""}`.trim();
+}
+
+function getDoctorSpecialty(doctor) {
+  const specialty = (doctor?.specialty || doctor?.speciality || doctor?.specialization || "").trim();
+  if (!specialty) {
+    return "";
+  }
+
+  return specialty.charAt(0).toUpperCase() + specialty.slice(1);
+}
+
+function normalizeDoctor(doctor) {
+  return {
+    ...doctor,
+    fullName: getDoctorName(doctor),
+    specialty: getDoctorSpecialty(doctor)
+  };
+}
+
 function createSlug(value) {
   return value
     .toLowerCase()
@@ -35,9 +64,9 @@ function buildJitsiMeetingLink({ appointmentId, patientName, doctorName, appoint
 }
 
 function AppointmentForm({ form, setForm, doctors, onSubmit, submitLabel }) {
-  const specialties = [...new Set(doctors.map((doctor) => doctor.specialty).filter(Boolean))].sort();
+  const specialties = [...new Set(doctors.map((doctor) => getDoctorSpecialty(doctor)).filter(Boolean))].sort();
   const filteredDoctors = form.specialty
-    ? doctors.filter((doctor) => doctor.specialty === form.specialty)
+    ? doctors.filter((doctor) => getDoctorSpecialty(doctor) === form.specialty)
     : [];
 
   const handleSpecialtyChange = (specialty) => {
@@ -54,8 +83,8 @@ function AppointmentForm({ form, setForm, doctors, onSubmit, submitLabel }) {
     setForm({
       ...form,
       doctorId,
-      doctorName: selectedDoctor?.fullName || "",
-      specialty: selectedDoctor?.specialty || ""
+      doctorName: getDoctorName(selectedDoctor),
+      specialty: getDoctorSpecialty(selectedDoctor)
     });
   };
 
@@ -88,7 +117,7 @@ function AppointmentForm({ form, setForm, doctors, onSubmit, submitLabel }) {
           <option value="">{form.specialty ? "Select a doctor" : "Select a specialty first"}</option>
           {filteredDoctors.map((doctor) => (
             <option key={doctor.id} value={doctor.id}>
-              {doctor.fullName}
+              {getDoctorName(doctor)}
             </option>
           ))}
         </select>
@@ -127,7 +156,7 @@ export default function BookAppointmentPage() {
 
   useEffect(() => {
     request("/api/doctors")
-      .then(setDoctors)
+      .then((data) => setDoctors((data || []).map(normalizeDoctor)))
       .catch((error) => {
         setMessage(error.message);
         setMessageTone("error");

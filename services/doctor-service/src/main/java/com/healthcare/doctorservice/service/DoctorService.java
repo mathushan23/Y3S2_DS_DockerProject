@@ -103,8 +103,7 @@ public class DoctorService {
     private Doctor toEntity(DoctorRequest request) {
         return Doctor.builder()
                 .id(request.getId())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
+                .fullName(request.getFullName())
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .specialty(request.getSpecialty())
@@ -126,8 +125,7 @@ public class DoctorService {
     }
 
     private void updateDoctorEntity(Doctor doctor, DoctorRequest request) {
-        doctor.setFirstName(request.getFirstName());
-        doctor.setLastName(request.getLastName());
+        doctor.setFullName(request.getFullName());
         doctor.setEmail(request.getEmail());
         doctor.setPhone(request.getPhone());
         doctor.setSpecialty(request.getSpecialty());
@@ -166,8 +164,7 @@ public class DoctorService {
 
         return DoctorResponse.builder()
                 .id(doctor.getId())
-                .firstName(doctor.getFirstName())
-                .lastName(doctor.getLastName())
+                .fullName(doctor.getFullName())
                 .email(doctor.getEmail())
                 .phone(doctor.getPhone())
                 .specialty(doctor.getSpecialty())

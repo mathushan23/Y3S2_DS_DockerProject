@@ -55,7 +55,7 @@ const PatientReport = () => {
                 // Transform patient data to expected format
                 const transformedPatients = data.map(patient => ({
                     id: patient.id,
-                    name: `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || patient.fullName || "Unknown",
+                    name: patient.fullName || `${patient.firstName || ''} ${patient.lastName || ''}`.trim() || "Unknown",
                     email: patient.email,
                     phone: patient.phone || patient.phoneNumber || "N/A",
                     age: patient.age || calculateAge(patient.dateOfBirth),
