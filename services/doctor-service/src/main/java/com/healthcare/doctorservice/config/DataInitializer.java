@@ -63,40 +63,11 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             doctorRepository.save(doctor);
 
-            // Also seed for doctor ID 4 since that seems to be assigned to Sarah Wilson in
-            // auth_service
-            Doctor doctor4 = Doctor.builder()
-                    .id(4L)
-                    .fullName("Sarah Wilson")
-                    .email("sarah.wilson@medical.com")
-                    .phone("+1 (555) 123-4567")
-                    .specialty("Cardiology")
-                    .address("123 Medical Center Blvd, Healthcare City, HC 12345")
-                    .dateOfBirth("1978-05-15")
-                    .gender("Female")
-                    .experience(18)
-                    .hospitalName("City General Hospital")
-                    .clinicName("Wilson Heart Clinic")
-                    .consultationFee(150.0)
-                    .emergencyFee(250.0)
-                    .bio("Dr. Sarah Wilson is a board-certified cardiologist with over 18 years of experience. She specializes in interventional cardiology and preventive cardiac care.")
-                    .licenseNumber("MD-CARD-2024-7890")
-                    .licenseExpiry("2026-12-31")
-                    .verificationStatus("verified")
-                    .boardCertified(true)
-                    .totalPatients(1247)
-                    .successfulTreatments(2134)
-                    .satisfactionRate(98.0)
-                    .averageRating(4.8)
-                    .totalReviews(342)
-                    .build();
-            doctorRepository.save(doctor4);
-
-            System.out.println("Default doctor profiles created for IDs 1 and 4.");
+            System.out.println("Default doctor profile created for ID 1.");
         }
 
         if (qualificationRepository.count() == 0) {
-            for (Long id : List.of(1L, 4L)) {
+            for (Long id : List.of(1L)) {
                 Qualification q1 = Qualification.builder()
                         .doctorId(id)
                         .degree("MD - Cardiology")
@@ -118,7 +89,7 @@ public class DataInitializer implements CommandLineRunner {
 
         if (workingHoursRepository.count() == 0) {
             String[] days = { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
-            for (Long id : List.of(1L, 4L)) {
+            for (Long id : List.of(1L)) {
                 for (String day : days) {
                     WorkingHours hours = WorkingHours.builder()
                             .doctorId(id)
@@ -146,7 +117,7 @@ public class DataInitializer implements CommandLineRunner {
                     .patientId(2L)
                     .patientName("John Doe")
                     .patientEmail("john.doe@example.com")
-                    .doctorId(4L) // Seed for ID 4 as well
+                    .doctorId(1L)
                     .doctorName("Dr. Sarah Wilson")
                     .diagnosis("Hypertension")
                     .notes("Monitor blood pressure daily")
