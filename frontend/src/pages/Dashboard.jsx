@@ -4,17 +4,17 @@ import PatientDashboard from "../components/dashboard/PatientDashboard";
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, isDoctor, isAdmin } = useAuth();
   
-  if (user?.role === "DOCTOR") {
+  if (isDoctor()) {
     return <DoctorDashboard user={user} />;
   }
 
-  if (user?.role === "ADMIN") {
+  if (isAdmin()) {
     return <AdminDashboard user={user} />;
   }
 
-  // Default to Patient Dashboard if PATIENT role or role missing
+  // Default to Patient Dashboard
   return <PatientDashboard user={user} />;
 }
 

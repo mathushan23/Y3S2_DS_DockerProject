@@ -4,23 +4,30 @@ import com.healthcare.patientservice.dto.PatientRequest;
 import com.healthcare.patientservice.dto.PatientResponse;
 import com.healthcare.patientservice.entity.Patient;
 import com.healthcare.patientservice.exception.ResourceNotFoundException;
+import com.healthcare.patientservice.entity.MedicalReport;
+import com.healthcare.patientservice.entity.Prescription;
+import com.healthcare.patientservice.repository.MedicalReportRepository;
 import com.healthcare.patientservice.repository.PatientRepository;
+import com.healthcare.patientservice.repository.PrescriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PatientService {
 
     private final PatientRepository patientRepository;
+    private final MedicalReportRepository medicalReportRepository;
+    private final PrescriptionRepository prescriptionRepository;
 
     public List<PatientResponse> getAllPatients() {
         return patientRepository.findAll()
                 .stream()
                 .map(this::toResponse)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public PatientResponse getPatientById(Long id) {
@@ -37,10 +44,46 @@ public class PatientService {
                 .phoneNumber(request.getPhoneNumber())
                 .dateOfBirth(request.getDateOfBirth())
                 .gender(request.getGender())
+                .bloodGroup(request.getBloodGroup())
+                .height(request.getHeight())
+                .weight(request.getWeight())
+                .emergencyContactName(request.getEmergencyContactName())
+                .emergencyContactNumber(request.getEmergencyContactNumber())
+                .allergies(request.getAllergies())
+                .chronicConditions(request.getChronicConditions())
                 .address(request.getAddress())
                 .build();
 
         return toResponse(patientRepository.save(patient));
+    }
+
+    public PatientResponse updatePatient(Long id, PatientRequest request) {
+        Patient patient = patientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with id: " + id));
+        
+        patient.setFirstName(request.getFirstName());
+        patient.setLastName(request.getLastName());
+        patient.setPhoneNumber(request.getPhoneNumber());
+        patient.setDateOfBirth(request.getDateOfBirth());
+        patient.setGender(request.getGender());
+        patient.setBloodGroup(request.getBloodGroup());
+        patient.setHeight(request.getHeight());
+        patient.setWeight(request.getWeight());
+        patient.setEmergencyContactName(request.getEmergencyContactName());
+        patient.setEmergencyContactNumber(request.getEmergencyContactNumber());
+        patient.setAllergies(request.getAllergies());
+        patient.setChronicConditions(request.getChronicConditions());
+        patient.setAddress(request.getAddress());
+
+        return toResponse(patientRepository.save(patient));
+    }
+
+    public List<MedicalReport> getReportsByPatient(Long patientId) {
+        return medicalReportRepository.findByPatientId(patientId);
+    }
+
+    public List<Prescription> getPrescriptionsByPatient(Long patientId) {
+        return prescriptionRepository.findByPatientId(patientId);
     }
 
     private PatientResponse toResponse(Patient patient) {
@@ -52,7 +95,15 @@ public class PatientService {
                 .phoneNumber(patient.getPhoneNumber())
                 .dateOfBirth(patient.getDateOfBirth())
                 .gender(patient.getGender())
+                .bloodGroup(patient.getBloodGroup())
+                .height(patient.getHeight())
+                .weight(patient.getWeight())
+                .emergencyContactName(patient.getEmergencyContactName())
+                .emergencyContactNumber(patient.getEmergencyContactNumber())
+                .allergies(patient.getAllergies())
+                .chronicConditions(patient.getChronicConditions())
                 .address(patient.getAddress())
+                .profilePictureUrl(patient.getProfilePictureUrl())
                 .build();
     }
 }

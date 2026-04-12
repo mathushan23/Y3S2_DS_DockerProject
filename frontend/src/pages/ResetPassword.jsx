@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
+import { FormField } from "../components/common";
 import { Lock, ShieldCheck, Activity, CheckCircle2, Heart } from "lucide-react";
 import authBg from "../assets/auth_bg.png";
 
@@ -9,12 +10,15 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const resetToken = location.state?.resetToken;
 
   useEffect(() => {
+    console.log("ResetPassword component mounted. Token received:", !!resetToken);
     if (!resetToken) {
+      console.warn("No reset token found in navigation state. Redirecting to forgot-password.");
       navigate("/forgot-password");
     }
   }, [resetToken, navigate]);
@@ -24,13 +28,14 @@ export default function ResetPassword() {
     setError("");
     setSuccess("");
 
-    if (form.newPassword !== form.confirmPassword) {
-      setError("Passwords do not match.");
+    // Simple Validation
+    if (form.newPassword.length < 6) {
+      setError("Password must be at least 6 characters long.");
       return;
     }
 
-    if (form.newPassword.length < 8) {
-      setError("Password must be at least 8 characters long.");
+    if (form.newPassword !== form.confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
@@ -111,10 +116,21 @@ export default function ResetPassword() {
                 />
               </FormField>
 
-              {error && <p className="message" style={{ color: "#ef4444", background: "#fef2f2", border: "1px solid #fee2e2" }}>{error}</p>}
+              {error && (
+                <p className="message" style={{ color: "#ef4444", background: "#fef2f2", border: "1px solid #fee2e2" }}>
+                  {error}
+                </p>
+              )}
 
-              <button type="submit" disabled={loading}>
-                {loading ? "Resetting..." : <><Lock size={20} style={{ marginRight: "0.5rem", verticalAlign: "middle" }} /> Reset Password</>}
+              <button type="submit" disabled={loading} style={{ marginTop: "1rem" }}>
+                {loading ? (
+                  "Resetting..."
+                ) : (
+                  <>
+                    <Lock size={20} style={{ marginRight: "0.5rem", verticalAlign: "middle" }} /> 
+                    Reset Password
+                  </>
+                )}
               </button>
             </form>
           ) : (

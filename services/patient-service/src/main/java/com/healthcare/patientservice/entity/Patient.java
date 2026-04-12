@@ -42,6 +42,14 @@ public class Patient {
     private LocalDate dateOfBirth;
 
     private String gender;
-
+    
+    private String bloodGroup;
+    private Double height;
+    private Double weight;
+    private String emergencyContactName;
+    private String emergencyContactNumber;
+    private String allergies;
+    private String chronicConditions;
     private String address;
+    private String profilePictureUrl;
 }
