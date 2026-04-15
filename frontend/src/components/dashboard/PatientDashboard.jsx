@@ -1,7 +1,9 @@
-import { HeartPulse, Calendar, Pill, History, Video, Activity, Scale, Bell } from "lucide-react";
+import { HeartPulse, Calendar, Pill, History, Video, Activity, Scale, Bell, Sparkles, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { SectionHeader } from "../common";
 
 export default function PatientDashboard({ user }) {
+  const navigate = useNavigate();
   const stats = [
     { label: "Blood Glucose", value: "98", unit: "mg/dL", icon: <Activity size={20} />, status: "Normal" },
     { label: "Weight", value: "72", unit: "kg", icon: <Scale size={20} />, status: "-2kg this month" },
@@ -58,6 +60,32 @@ export default function PatientDashboard({ user }) {
       </div>
 
       <div className="page-grid" style={{ marginTop: "2rem" }}>
+        <div className="panel" style={{ flex: 1, background: "linear-gradient(135deg, rgba(8, 145, 178, 0.15), rgba(37, 99, 235, 0.14))" }}>
+          <SectionHeader title="AI Symptom Checker" subtitle="Turn symptom notes into a specialty recommendation before booking." />
+          <div style={{ display: "grid", gap: "0.95rem" }}>
+            <div style={{ display: "flex", gap: "0.85rem", alignItems: "center", padding: "1rem", borderRadius: "16px", background: "rgba(15, 23, 42, 0.34)", border: "1px solid rgba(148, 163, 184, 0.14)" }}>
+              <div className="icon-badge" style={{ background: "rgba(34, 211, 238, 0.14)", color: "#67e8f9" }}>
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontWeight: 700 }}>Describe symptoms</h4>
+                <p style={{ margin: "0.3rem 0 0", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                  Get an urgency signal and recommended doctor specialty.
+                </p>
+              </div>
+            </div>
+
+            <button
+              className="primary"
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.55rem", width: "fit-content" }}
+              onClick={() => navigate("/symptom-checker")}
+            >
+              Open Symptom Checker
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+
         <div className="panel" style={{ flex: 2 }}>
           <SectionHeader title="Current Prescriptions" subtitle="Manage your daily medicine schedule." />
           <div className="prescriptions-list" style={{ display: "grid", gap: "1rem" }}>
