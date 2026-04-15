@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { request, FormField, SectionHeader } from "../components/common";
 
 const jitsiBaseUrl = "https://meet.jit.si";
@@ -148,6 +149,7 @@ function AppointmentForm({ form, setForm, doctors, onSubmit, submitLabel }) {
 }
 
 export default function BookAppointmentPage() {
+  const location = useLocation();
   const [form, setForm] = useState(appointmentInitial);
   const [doctors, setDoctors] = useState([]);
   const [message, setMessage] = useState("");
@@ -162,6 +164,30 @@ export default function BookAppointmentPage() {
         setMessageTone("error");
       });
   }, []);
+
+  useEffect(() => {
+    const recommendedSpecialty = location.state?.recommendedSpecialty;
+    const symptomSummary = location.state?.symptomSummary;
+    const urgencyLevel = location.state?.urgencyLevel;
+
+    if (!recommendedSpecialty) {
+      return;
+    }
+
+    setForm((current) => {
+      const notes = [
+        current.notes,
+        symptomSummary ? `AI summary: ${symptomSummary}` : "",
+        urgencyLevel ? `Urgency: ${urgencyLevel}` : ""
+      ].filter(Boolean).join(" | ");
+
+      return {
+        ...current,
+        specialty: recommendedSpecialty,
+        notes
+      };
+    });
+  }, [location.state]);
 
   const submit = async (event) => {
     event.preventDefault();

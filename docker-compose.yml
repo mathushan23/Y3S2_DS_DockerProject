@@ -1,9 +1,8 @@
-version: "3.9"
-
 services:
   mysql:
     image: mysql:8.4
     container_name: healthcare-mysql
+    profiles: ["local-db"]
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -37,9 +36,6 @@ services:
       TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
       TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
       TWILIO_VERIFY_SERVICE_SID: ${TWILIO_VERIFY_SERVICE_SID}
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "${AUTH_SERVICE_PORT}:8081"
 
@@ -54,9 +50,6 @@ services:
       DB_NAME: ${PATIENT_DB}
       DB_USERNAME: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "${PATIENT_SERVICE_PORT}:8082"
 
@@ -71,9 +64,6 @@ services:
       DB_NAME: ${DOCTOR_DB}
       DB_USERNAME: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "${DOCTOR_SERVICE_PORT}:8083"
 
@@ -92,8 +82,6 @@ services:
       DOCTOR_SERVICE_URL: http://doctor-service:8083
       PAYMENT_SERVICE_URL: http://payment-service:8085
     depends_on:
-      mysql:
-        condition: service_healthy
       patient-service:
         condition: service_started
       doctor-service:
@@ -119,9 +107,6 @@ services:
       DB_NAME: ${PAYMENT_DB}
       DB_USERNAME: ${MYSQL_USER}
       DB_PASSWORD: ${MYSQL_PASSWORD}
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "${PAYMENT_SERVICE_PORT}:8085"
 
@@ -139,8 +124,6 @@ services:
       AUTH_SERVICE_URL: http://auth-service:8081
       APPOINTMENT_SERVICE_URL: http://appointment-service:8084
     depends_on:
-      mysql:
-        condition: service_healthy
       auth-service:
         condition: service_started
       appointment-service:
@@ -161,9 +144,9 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD}
       PATIENT_SERVICE_URL: http://patient-service:8082
       DOCTOR_SERVICE_URL: http://doctor-service:8083
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL}
     depends_on:
-      mysql:
-        condition: service_healthy
       patient-service:
         condition: service_started
       doctor-service:
@@ -187,8 +170,6 @@ services:
       PATIENT_SERVICE_URL: http://patient-service:8082
       DOCTOR_SERVICE_URL: http://doctor-service:8083
     depends_on:
-      mysql:
-        condition: service_healthy
       appointment-service:
         condition: service_started
       notification-service:

@@ -7,10 +7,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import OtpVerification from "./pages/OtpVerification";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import AppointmentsRoute from "./pages/AppointmentsRoute.jsx";
+import SymptomChecker from "./pages/SymptomChecker.jsx";
 
 
-
-import Appointments from "./pages/Doctor/Appointments.jsx";
 
 import UserManagement from "./pages/UserManagement";
 import Prescriptions from "./pages/Doctor/Prescriptions.jsx";
@@ -35,7 +35,8 @@ export default function App() {
             {/* Protected Routes */}
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
-              <Route path="appointments" element={<Appointments />} />
+              <Route path="appointments" element={<AppointmentsRoute />} />
+              <Route path="symptom-checker" element={<SymptomChecker />} />
               <Route path="profile" element={<Profile />} />
               <Route path="patientreport" element={<PatientReport />} />
               <Route path="prescriptions" element={<Prescriptions />} />
