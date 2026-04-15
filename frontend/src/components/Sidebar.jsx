@@ -1,150 +1,237 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
-    LayoutDashboard,
-    FileText,
-    CalendarDays,
-    Clock3,
-    FileHeart,
-    UserCircle2,
-    LogOut,
-    Shield,
-    Settings,
-    LifeBuoy,
-    Stethoscope,
+  LayoutDashboard,
+  FileText,
+  CalendarDays,
+  Clock3,
+  FileHeart,
+  UserCircle2,
+  LogOut,
+  Shield,
+  Settings,
+  LifeBuoy,
+  Stethoscope,
+  Users,
+  Activity
 } from "lucide-react";
 import { Nav, Button } from "react-bootstrap";
 
 export default function Sidebar() {
-    const { logout, user } = useAuth();
+  const { logout, user } = useAuth();
 
-    const links = [
-        {
-            id: "dashboard",
-            label: "Dashboard",
-            path: "/",
-            icon: <LayoutDashboard size={19} />,
-        },
-        {
-            id: "prescriptions",
-            label: "Prescriptions",
-            path: "/prescriptions",
-            icon: <FileText size={19} />,
-        },
-        {
-            id: "appointments",
-            label: "Appointments",
-            path: "/appointments",
-            icon: <CalendarDays size={19} />,
-        },
-        {
-            id: "availability",
-            label: "Availability",
-            path: "/availability",
-            icon: <Clock3 size={19} />,
-        },
-        {
-            id: "patientreport",
-            label: "Patient Report",
-            path: "/patientreport",
-            icon: <FileHeart size={19} />,
-        },
-        {
-            id: "profile",
-            label: "Profile",
-            path: "/profile",
-            icon: <UserCircle2 size={19} />,
-        },
+  // Define menu items for each role
+  const getMenuItems = () => {
+    const role = user?.role;
+
+    // Common menu items for all roles
+    const commonItems = [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        path: "/",
+        icon: <LayoutDashboard size={19} />,
+      },
+      {
+        id: "profile",
+        label: "Profile",
+        path: "/profile",
+        icon: <UserCircle2 size={19} />,
+      }
     ];
 
-    if (user?.role === "ADMIN") {
-        links.push({
-            id: "users",
-            label: "User Management",
-            path: "/users",
-            icon: <Shield size={19} />,
-        });
+    // Doctor-specific menu items
+    const doctorItems = [
+      {
+        id: "prescriptions",
+        label: "Prescriptions",
+        path: "/prescriptions",
+        icon: <FileText size={19} />,
+      },
+      {
+        id: "appointments",
+        label: "Appointments",
+        path: "/appointments",
+        icon: <CalendarDays size={19} />,
+      },
+      {
+        id: "availability",
+        label: "Availability",
+        path: "/availability",
+        icon: <Clock3 size={19} />,
+      },
+      {
+        id: "patientreport",
+        label: "Patient Report",
+        path: "/patientreport",
+        icon: <FileHeart size={19} />,
+      }
+    ];
+
+    // Patient-specific menu items
+    const patientItems = [
+      {
+        id: "appointments",
+        label: "Appointments",
+        path: "/appointments",
+        icon: <CalendarDays size={19} />,
+      },
+      {
+        id: "symptom-checker",
+        label: "Symptom Checker",
+        path: "/symptom-checker",
+        icon: <Stethoscope size={19} />,
+      },
+      {
+        id: "prescriptions",
+        label: "My Prescriptions",
+        path: "/prescriptions",
+        icon: <FileText size={19} />,
+      }
+    ];
+
+    // Admin-specific menu items
+    const adminItems = [
+      {
+        id: "dashboard",
+        label: "Admin Dashboard",
+        path: "/",
+        icon: <Activity size={19} />,
+      },
+      {
+        id: "users",
+        label: "User Management",
+        path: "/users",
+        icon: <Shield size={19} />,
+      },
+      {
+        id: "appointments",
+        label: "All Appointments",
+        path: "/appointments",
+        icon: <CalendarDays size={19} />,
+      },
+      {
+        id: "patientreport",
+        label: "Reports",
+        path: "/patientreport",
+        icon: <FileHeart size={19} />,
+      }
+    ];
+
+    // Return menu based on role
+    switch (role) {
+      case "DOCTOR":
+        return [...commonItems, ...doctorItems];
+      case "PATIENT":
+        return [...commonItems, ...patientItems];
+      case "ADMIN":
+        return [...adminItems];
+      default:
+        return commonItems;
     }
+  };
 
-    return (
-        <>
-            <aside className="smart-sidebar">
-                <div className="smart-sidebar-top">
-                    <div className="smart-sidebar-brand">
-                        {/*<div className="smart-brand-icon">*/}
-                        {/*    <Stethoscope size={20} />*/}
-                        {/*</div>*/}
-                        <div>
-                            <h5 className="smart-brand-title mb-0">SmartHealth</h5>
-                            {/*<p className="smart-brand-subtitle mb-0">Doctor Panel</p>*/}
-                        </div>
-                    </div>
+  // Support items (common for all roles)
+  const supportItems = [
+    {
+      id: "settings",
+      label: "Settings",
+      path: "/settings",
+      icon: <Settings size={19} />,
+    },
+    {
+      id: "help",
+      label: "Help Center",
+      path: "/help",
+      icon: <LifeBuoy size={19} />,
+    }
+  ];
 
-                    <div className="smart-sidebar-user">
-                        <div className="smart-user-avatar">
-                            {user?.fullName?.charAt(0)?.toUpperCase() || "D"}
-                        </div>
-                        <div className="smart-user-info">
-                            <h6 className="mb-0">{user?.fullName || "Guest User"}</h6>
-                            <p className="mb-0">{user?.role || "Member"}</p>
-                        </div>
-                    </div>
-                </div>
+  const menuItems = getMenuItems();
 
-                <div className="smart-sidebar-body">
-                    <div className="smart-sidebar-section">
-                        <p className="smart-sidebar-section-title">MAIN MENU</p>
+  return (
+    <>
+      <aside className="smart-sidebar">
+        <div className="smart-sidebar-top">
+          <div className="smart-sidebar-brand">
+            <div>
+              <h5 className="smart-brand-title mb-0">SmartHealth</h5>
+              {user?.role && (
+                <p className="smart-brand-subtitle mb-0">
+                  {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Panel
+                </p>
+              )}
+            </div>
+          </div>
 
-                        <Nav className="flex-column gap-1">
-                            {links.map((link) => (
-                                <NavLink
-                                    key={link.id}
-                                    to={link.path}
-                                    end={link.path === "/"}
-                                    className={({ isActive }) =>
-                                        `smart-nav-link ${isActive ? "active" : ""}`
-                                    }
-                                >
-                                    <span className="smart-nav-icon">{link.icon}</span>
-                                    <span className="smart-nav-text">{link.label}</span>
-                                </NavLink>
-                            ))}
-                        </Nav>
-                    </div>
+          <div className="smart-sidebar-user">
+            <div className="smart-user-avatar">
+              {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+            </div>
+            <div className="smart-user-info">
+              <h6 className="mb-0">{user?.fullName || "Guest User"}</h6>
+              <p className="mb-0">{user?.role || "Member"}</p>
+            </div>
+          </div>
+        </div>
 
-                    <div className="smart-sidebar-section mt-4">
-                        <p className="smart-sidebar-section-title">SUPPORT</p>
+        <div className="smart-sidebar-body">
+          <div className="smart-sidebar-section">
+            <p className="smart-sidebar-section-title">
+              {user?.role === "ADMIN" ? "ADMIN MENU" : "MAIN MENU"}
+            </p>
 
-                        <Nav className="flex-column gap-1">
-                            <NavLink to="/settings" className="smart-nav-link">
-                <span className="smart-nav-icon">
-                  <Settings size={19} />
-                </span>
-                                <span className="smart-nav-text">Settings</span>
-                            </NavLink>
+            <Nav className="flex-column gap-1">
+              {menuItems.map((link) => (
+                <NavLink
+                  key={link.id}
+                  to={link.path}
+                  end={link.path === "/"}
+                  className={({ isActive }) =>
+                    `smart-nav-link ${isActive ? "active" : ""}`
+                  }
+                >
+                  <span className="smart-nav-icon">{link.icon}</span>
+                  <span className="smart-nav-text">{link.label}</span>
+                </NavLink>
+              ))}
+            </Nav>
+          </div>
 
-                            <NavLink to="/help" className="smart-nav-link">
-                <span className="smart-nav-icon">
-                  <LifeBuoy size={19} />
-                </span>
-                                <span className="smart-nav-text">Help Center</span>
-                            </NavLink>
-                        </Nav>
-                    </div>
-                </div>
+          {/* Support section - show for all except maybe admin */}
+          {user?.role !== "ADMIN" && (
+            <div className="smart-sidebar-section mt-4">
+              <p className="smart-sidebar-section-title">SUPPORT</p>
+              <Nav className="flex-column gap-1">
+                {supportItems.map((link) => (
+                  <NavLink
+                    key={link.id}
+                    to={link.path}
+                    className={({ isActive }) =>
+                      `smart-nav-link ${isActive ? "active" : ""}`
+                    }
+                  >
+                    <span className="smart-nav-icon">{link.icon}</span>
+                    <span className="smart-nav-text">{link.label}</span>
+                  </NavLink>
+                ))}
+              </Nav>
+            </div>
+          )}
+        </div>
 
-                <div className="smart-sidebar-footer">
-                    <Button
-                        onClick={logout}
-                        className="smart-logout-btn"
-                    >
-                        <LogOut size={18} />
-                        <span>Sign Out</span>
-                    </Button>
-                </div>
-            </aside>
+        <div className="smart-sidebar-footer">
+          <Button
+            onClick={logout}
+            className="smart-logout-btn"
+          >
+            <LogOut size={18} />
+            <span>Sign Out</span>
+          </Button>
+        </div>
+      </aside>
 
-            <style>{`
+      <style>{`
         .smart-sidebar {
           width: 280px;
           height: 100vh;
@@ -358,6 +445,6 @@ export default function Sidebar() {
           transform: translateY(-1px);
         }
       `}</style>
-        </>
-    );
+    </>
+  );
 }
