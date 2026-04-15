@@ -32,12 +32,7 @@ export default function Sidebar() {
         path: "/",
         icon: <LayoutDashboard size={19} />,
       },
-      {
-        id: "profile",
-        label: "Profile",
-        path: "/profile",
-        icon: <UserCircle2 size={19} />,
-      }
+
     ];
 
     // Doctor-specific menu items
@@ -49,11 +44,17 @@ export default function Sidebar() {
         icon: <FileText size={19} />,
       },
       {
-        id: "appointments",
-        label: "Appointments",
-        path: "/appointments",
-        icon: <CalendarDays size={19} />,
+        id: "profile",
+        label: "Profile",
+        path: "/profile",
+        icon: <UserCircle2 size={19} />,
       },
+      // {
+      //   id: "appointments",
+      //   label: "Appointments",
+      //   path: "/appointments",
+      //   icon: <CalendarDays size={19} />,
+      // },
       {
         id: "availability",
         label: "Availability",
@@ -93,28 +94,28 @@ export default function Sidebar() {
     // Admin-specific menu items
     const adminItems = [
       {
-        id: "dashboard",
+        id: "admin-dashboard",
         label: "Admin Dashboard",
-        path: "/",
-        icon: <Activity size={19} />,
+        path: "/admin/dashboard",
+        icon: <LayoutDashboard size={19} />,
       },
       {
-        id: "users",
-        label: "User Management",
-        path: "/users",
-        icon: <Shield size={19} />,
+        id: "doctor-management",
+        label: "Doctor Management",
+        path: "/admin/doctor-management",
+        icon: <Stethoscope size={19} />,
       },
       {
-        id: "appointments",
+        id: "patient-management",
+        label: "Patient Management",
+        path: "/admin/patient-management",
+        icon: <Users size={19} />,
+      },
+      {
+        id: "all-appointments",
         label: "All Appointments",
-        path: "/appointments",
+        path: "/admin/all-appointments",
         icon: <CalendarDays size={19} />,
-      },
-      {
-        id: "patientreport",
-        label: "Reports",
-        path: "/patientreport",
-        icon: <FileHeart size={19} />,
       }
     ];
 
