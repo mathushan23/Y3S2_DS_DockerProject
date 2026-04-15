@@ -91,6 +91,12 @@ export default function Login() {
               />
             </FormField>
 
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.5rem", marginBottom: "1rem" }}>
+              <Link to="/forgot-password" style={{ fontSize: "0.875rem", color: "#0ea5e9", textDecoration: "none", fontWeight: 500 }}>
+                Forgot Password?
+              </Link>
+            </div>
+
             {error && <p className="message" style={{ color: "#ef4444", background: "#fef2f2", border: "1px solid #fee2e2" }}>{error}</p>}
 
             <button type="submit" disabled={loading}>

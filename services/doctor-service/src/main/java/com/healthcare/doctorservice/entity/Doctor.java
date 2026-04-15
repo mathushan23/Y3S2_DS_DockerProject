@@ -3,6 +3,8 @@ package com.healthcare.doctorservice.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -13,16 +15,25 @@ public class Doctor {
     private Long id;
 
     @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
+    private String fullName;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "phone_number", nullable = false)
     private String phone;
+
+    @Column(name = "phone", nullable = false)
+    private String legacyPhone;
+
+    @Column(name = "first_name", nullable = false)
+    private String firstName;
+
+    @Column(name = "last_name", nullable = false)
+    private String lastName;
+
+    @Column(nullable = false)
+    private boolean verified;
 
     private String specialty;
     private String address;
@@ -39,7 +50,7 @@ public class Doctor {
     private String verificationStatus;
     private boolean boardCertified;
     private String profilePhotoUrl;
-    
+
     private int totalPatients;
     private int successfulTreatments;
     private double satisfactionRate;
@@ -48,10 +59,14 @@ public class Doctor {
 
     public Doctor() {}
 
-    public Doctor(Long id, String firstName, String lastName, String email, String phone, String specialty, String address, String dateOfBirth, String gender, int experience, String hospitalName, String clinicName, double consultationFee, double emergencyFee, String bio, String licenseNumber, String licenseExpiry, String verificationStatus, boolean boardCertified, String profilePhotoUrl, int totalPatients, int successfulTreatments, double satisfactionRate, double averageRating, int totalReviews) {
+    public Doctor(Long id, String fullName, String email, String phone, String specialty, String address,
+                  String dateOfBirth, String gender, int experience, String hospitalName, String clinicName,
+                  double consultationFee, double emergencyFee, String bio, String licenseNumber,
+                  String licenseExpiry, String verificationStatus, boolean boardCertified, String profilePhotoUrl,
+                  int totalPatients, int successfulTreatments, double satisfactionRate, double averageRating,
+                  int totalReviews) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.specialty = specialty;
@@ -82,10 +97,8 @@ public class Doctor {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPhone() { return phone; }
@@ -131,10 +144,26 @@ public class Doctor {
     public int getTotalReviews() { return totalReviews; }
     public void setTotalReviews(int totalReviews) { this.totalReviews = totalReviews; }
 
+    @PrePersist
+    @PreUpdate
+    private void syncLegacyColumns() {
+        String normalizedFullName = fullName != null ? fullName.trim() : "";
+        if (!normalizedFullName.isEmpty()) {
+            String[] nameParts = normalizedFullName.split("\\s+", 2);
+            this.firstName = nameParts[0];
+            this.lastName = nameParts.length > 1 ? nameParts[1] : nameParts[0];
+        } else {
+            this.firstName = "Doctor";
+            this.lastName = "Doctor";
+        }
+
+        this.verified = verificationStatus != null && verificationStatus.equalsIgnoreCase("verified");
+        this.legacyPhone = (phone != null && !phone.isBlank()) ? phone : "N/A";
+    }
+
     public static class DoctorBuilder {
         private Long id;
-        private String firstName;
-        private String lastName;
+        private String fullName;
         private String email;
         private String phone;
         private String specialty;
@@ -159,8 +188,7 @@ public class Doctor {
         private int totalReviews;
 
         public DoctorBuilder id(Long id) { this.id = id; return this; }
-        public DoctorBuilder firstName(String firstName) { this.firstName = firstName; return this; }
-        public DoctorBuilder lastName(String lastName) { this.lastName = lastName; return this; }
+        public DoctorBuilder fullName(String fullName) { this.fullName = fullName; return this; }
         public DoctorBuilder email(String email) { this.email = email; return this; }
         public DoctorBuilder phone(String phone) { this.phone = phone; return this; }
         public DoctorBuilder specialty(String specialty) { this.specialty = specialty; return this; }
@@ -185,7 +213,10 @@ public class Doctor {
         public DoctorBuilder totalReviews(int totalReviews) { this.totalReviews = totalReviews; return this; }
 
         public Doctor build() {
-            return new Doctor(id, firstName, lastName, email, phone, specialty, address, dateOfBirth, gender, experience, hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry, verificationStatus, boardCertified, profilePhotoUrl, totalPatients, successfulTreatments, satisfactionRate, averageRating, totalReviews);
+            return new Doctor(id, fullName, email, phone, specialty, address, dateOfBirth, gender, experience,
+                    hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry,
+                    verificationStatus, boardCertified, profilePhotoUrl, totalPatients, successfulTreatments,
+                    satisfactionRate, averageRating, totalReviews);
         }
     }
 }

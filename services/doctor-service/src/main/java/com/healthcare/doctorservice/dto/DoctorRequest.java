@@ -4,8 +4,7 @@ import java.util.List;
 
 public class DoctorRequest {
     private Long id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String phone;
     private String email;
     private String specialty;
@@ -28,10 +27,14 @@ public class DoctorRequest {
 
     public DoctorRequest() {}
 
-    public DoctorRequest(Long id, String firstName, String lastName, String phone, String email, String specialty, String address, String dateOfBirth, String gender, int experience, String hospitalName, String clinicName, double consultationFee, double emergencyFee, String bio, String licenseNumber, String licenseExpiry, String verificationStatus, boolean boardCertified, String profilePhotoUrl, List<WorkingHoursDTO> workingHours, List<QualificationDTO> qualifications) {
+    public DoctorRequest(Long id, String fullName, String phone, String email, String specialty, String address,
+                         String dateOfBirth, String gender, int experience, String hospitalName, String clinicName,
+                         double consultationFee, double emergencyFee, String bio, String licenseNumber,
+                         String licenseExpiry, String verificationStatus, boolean boardCertified,
+                         String profilePhotoUrl, List<WorkingHoursDTO> workingHours,
+                         List<QualificationDTO> qualifications) {
         this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.phone = phone;
         this.email = email;
         this.specialty = specialty;
@@ -59,10 +62,8 @@ public class DoctorRequest {
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getEmail() { return email; }
@@ -104,8 +105,7 @@ public class DoctorRequest {
 
     public static class DoctorRequestBuilder {
         private Long id;
-        private String firstName;
-        private String lastName;
+        private String fullName;
         private String phone;
         private String email;
         private String specialty;
@@ -127,8 +127,7 @@ public class DoctorRequest {
         private List<QualificationDTO> qualifications;
 
         public DoctorRequestBuilder id(Long id) { this.id = id; return this; }
-        public DoctorRequestBuilder firstName(String firstName) { this.firstName = firstName; return this; }
-        public DoctorRequestBuilder lastName(String lastName) { this.lastName = lastName; return this; }
+        public DoctorRequestBuilder fullName(String fullName) { this.fullName = fullName; return this; }
         public DoctorRequestBuilder phone(String phone) { this.phone = phone; return this; }
         public DoctorRequestBuilder email(String email) { this.email = email; return this; }
         public DoctorRequestBuilder specialty(String specialty) { this.specialty = specialty; return this; }
@@ -150,7 +149,9 @@ public class DoctorRequest {
         public DoctorRequestBuilder qualifications(List<QualificationDTO> qualifications) { this.qualifications = qualifications; return this; }
 
         public DoctorRequest build() {
-            return new DoctorRequest(id, firstName, lastName, phone, email, specialty, address, dateOfBirth, gender, experience, hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry, verificationStatus, boardCertified, profilePhotoUrl, workingHours, qualifications);
+            return new DoctorRequest(id, fullName, phone, email, specialty, address, dateOfBirth, gender, experience,
+                    hospitalName, clinicName, consultationFee, emergencyFee, bio, licenseNumber, licenseExpiry,
+                    verificationStatus, boardCertified, profilePhotoUrl, workingHours, qualifications);
         }
     }
 }

@@ -21,6 +21,7 @@ public class DataInitializer implements CommandLineRunner {
             AppUser sarah = AppUser.builder()
                     .fullName("Dr. Sarah Wilson")
                     .email("sarah.wilson@medical.com")
+                    .phoneNumber("+15551234567")
                     .password("password123")
                     .role(UserRole.DOCTOR)
                     .build();
@@ -29,6 +30,7 @@ public class DataInitializer implements CommandLineRunner {
             AppUser john = AppUser.builder()
                     .fullName("John Doe")
                     .email("john.doe@example.com")
+                    .phoneNumber("+15550000000")
                     .password("password123")
                     .role(UserRole.PATIENT)
                     .build();

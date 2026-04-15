@@ -41,9 +41,6 @@ const DoctorDashboard = () => {
     if (user?.fullName) {
       return user.fullName;
     }
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
     if (user?.name) {
       return user.name;
     }

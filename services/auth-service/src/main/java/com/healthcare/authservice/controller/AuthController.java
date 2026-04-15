@@ -4,10 +4,16 @@ import com.healthcare.authservice.dto.LoginRequest;
 import com.healthcare.authservice.dto.LoginResponse;
 import com.healthcare.authservice.dto.UserRequest;
 import com.healthcare.authservice.dto.UserResponse;
+import com.healthcare.authservice.dto.ForgotPasswordRequest;
+import com.healthcare.authservice.dto.VerifyOtpRequest;
+import com.healthcare.authservice.dto.VerifyOtpResponse;
+import com.healthcare.authservice.dto.ResetPasswordRequest;
 import com.healthcare.authservice.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,5 +64,23 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long id) {
         authService.deleteUser(id);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getPhoneNumber());
+        return ResponseEntity.ok(Map.of("message", "If the phone number is registered, a verification code has been sent."));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        VerifyOtpResponse response = authService.verifyOtp(request.getPhoneNumber(), request.getOtp());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getResetToken(), request.getNewPassword());
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now login."));
     }
 }

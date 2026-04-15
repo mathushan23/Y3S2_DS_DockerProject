@@ -37,6 +37,12 @@ export default function Sidebar() {
             path: "/appointments",
             icon: <CalendarDays size={19} />,
         },
+        ...(user?.role === "PATIENT" ? [{
+            id: "symptom-checker",
+            label: "Symptom Checker",
+            path: "/symptom-checker",
+            icon: <Stethoscope size={19} />,
+        }] : []),
         {
             id: "availability",
             label: "Availability",
