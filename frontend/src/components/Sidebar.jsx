@@ -20,53 +20,135 @@ import { Nav, Button } from "react-bootstrap";
 export default function Sidebar() {
   const { logout, user } = useAuth();
 
-  const links = [
+  // Define menu items for each role
+  const getMenuItems = () => {
+    const role = user?.role;
+
+    // Common menu items for all roles
+    const commonItems = [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        path: "/",
+        icon: <LayoutDashboard size={19} />,
+      },
+
+    ];
+
+    // Doctor-specific menu items
+    const doctorItems = [
+      {
+        id: "prescriptions",
+        label: "Prescriptions",
+        path: "/prescriptions",
+        icon: <FileText size={19} />,
+      },
+      {
+        id: "profile",
+        label: "Profile",
+        path: "/profile",
+        icon: <UserCircle2 size={19} />,
+      },
+      // {
+      //   id: "appointments",
+      //   label: "Appointments",
+      //   path: "/appointments",
+      //   icon: <CalendarDays size={19} />,
+      // },
+      {
+        id: "availability",
+        label: "Availability",
+        path: "/availability",
+        icon: <Clock3 size={19} />,
+      },
+      {
+        id: "patientreport",
+        label: "Patient Report",
+        path: "/patientreport",
+        icon: <FileHeart size={19} />,
+      }
+    ];
+
+    // Patient-specific menu items
+    const patientItems = [
+      {
+        id: "appointments",
+        label: "Appointments",
+        path: "/appointments",
+        icon: <CalendarDays size={19} />,
+      },
+      {
+        id: "symptom-checker",
+        label: "Symptom Checker",
+        path: "/symptom-checker",
+        icon: <Stethoscope size={19} />,
+      },
+      {
+        id: "prescriptions",
+        label: "My Prescriptions",
+        path: "/prescriptions",
+        icon: <FileText size={19} />,
+      }
+    ];
+
+    // Admin-specific menu items
+    const adminItems = [
+      {
+        id: "admin-dashboard",
+        label: "Admin Dashboard",
+        path: "/admin/dashboard",
+        icon: <LayoutDashboard size={19} />,
+      },
+      {
+        id: "doctor-management",
+        label: "Doctor Management",
+        path: "/admin/doctor-management",
+        icon: <Stethoscope size={19} />,
+      },
+      {
+        id: "patient-management",
+        label: "Patient Management",
+        path: "/admin/patient-management",
+        icon: <Users size={19} />,
+      },
+      {
+        id: "all-appointments",
+        label: "All Appointments",
+        path: "/admin/all-appointments",
+        icon: <CalendarDays size={19} />,
+      }
+    ];
+
+    // Return menu based on role
+    switch (role) {
+      case "DOCTOR":
+        return [...commonItems, ...doctorItems];
+      case "PATIENT":
+        return [...commonItems, ...patientItems];
+      case "ADMIN":
+        return [...adminItems];
+      default:
+        return commonItems;
+    }
+  };
+
+  // Support items (common for all roles)
+  const supportItems = [
     {
-      id: "dashboard",
-      label: "Dashboard",
-      path: "/",
-      icon: <LayoutDashboard size={19} />,
+      id: "settings",
+      label: "Settings",
+      path: "/settings",
+      icon: <Settings size={19} />,
     },
     {
-      id: "prescriptions",
-      label: "Prescriptions",
-      path: "/prescriptions",
-      icon: <FileText size={19} />,
-    },
-    {
-      id: "appointments",
-      label: "Appointments",
-      path: "/appointments",
-      icon: <CalendarDays size={19} />,
-    },
-    {
-      id: "availability",
-      label: "Availability",
-      path: "/availability",
-      icon: <Clock3 size={19} />,
-    },
-    {
-      id: "patientreport",
-      label: "Patient Report",
-      path: "/patientreport",
-      icon: <FileHeart size={19} />,
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      path: "/profile",
-      icon: <UserCircle2 size={19} />,
-    },
+      id: "help",
+      label: "Help Center",
+      path: "/help",
+      icon: <LifeBuoy size={19} />,
+    }
   ];
 
-  if (user?.role === "ADMIN") {
-    links.push({
-      id: "users",
-      label: "User Management",
-      path: "/users",
-      icon: <Shield size={19} />,
-    });
-  }
+  const menuItems = getMenuItems();
 
   return (
     <>
