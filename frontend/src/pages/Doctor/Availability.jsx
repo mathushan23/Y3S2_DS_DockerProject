@@ -106,13 +106,21 @@ const Availability = () => {
             });
             if (appointmentsResponse.ok) {
                 const appointments = await appointmentsResponse.json();
-                setBookedSlots(appointments.map(app => ({
-                    id: app.id,
-                    patientName: app.patientName,
-                    date: app.appointmentDateTime.split('T')[0],
-                    startTime: app.appointmentDateTime.split('T')[1].substring(0, 5),
-                    status: app.status
-                })));
+                setBookedSlots(appointments.map(app => {
+                    // Extract time to calculate an estimated end time (30 mins later)
+                    const [date, time] = app.appointmentDateTime.split('T');
+                    const [hours, mins] = time.split(':').map(Number);
+                    const totalMins = hours * 60 + mins + 30;
+                    const endHours = Math.floor(totalMins / 60).toString().padStart(2, '0');
+                    const endMins = (totalMins % 60).toString().padStart(2, '0');
+                    
+                    return {
+                        ...app,
+                        date: date,
+                        startTime: time.substring(0, 5),
+                        endTime: `${endHours}:${endMins}`,
+                    };
+                }));
             }
         } catch (error) {
             console.error("Error loading availability:", error);
@@ -272,6 +280,51 @@ const Availability = () => {
             const updatedUnavailableDates = unavailableDates.filter(d => d.id !== id);
             saveUnavailableDates(updatedUnavailableDates);
             showNotification("Unavailable date removed", "success");
+        }
+    };
+
+    const handleUpdateAppointmentStatus = async (appointmentId, newStatus) => {
+        try {
+            const appointment = bookedSlots.find(a => a.id === appointmentId);
+            if (!appointment) return;
+
+            // Prepare the full request body as required by the backend's PUT endpoint
+            const updateRequest = {
+                patientId: appointment.patientId,
+                doctorId: appointment.doctorId,
+                patientName: appointment.patientName,
+                doctorName: appointment.doctorName,
+                specialty: appointment.specialty,
+                appointmentDateTime: appointment.appointmentDateTime,
+                status: newStatus.toUpperCase(),
+                patientEmail: appointment.patientEmail,
+                patientPhone: appointment.patientPhone,
+                location: appointment.location,
+                notes: appointment.notes,
+                billingStatus: appointment.billingStatus,
+                fee: appointment.fee,
+                reason: appointment.reason,
+                symptoms: appointment.symptoms
+            };
+
+            const response = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateRequest)
+            });
+
+            if (response.ok) {
+                showNotification(`Appointment ${newStatus} successfully!`, "success");
+                loadAvailabilityData(); // Refresh the data
+            } else {
+                showNotification("Failed to update appointment status", "danger");
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+            showNotification("Connection error while updating status", "danger");
         }
     };
 
@@ -768,14 +821,40 @@ const Availability = () => {
                                                         <td>{slot.startTime} - {slot.endTime}</td>
                                                         <td>{slot.appointmentType || "Regular"}</td>
                                                         <td>
-                                                            <Badge bg={slot.status === 'confirmed' ? 'success' : 'warning'}>
-                                                                {slot.status || "Confirmed"}
+                                                            <Badge bg={
+                                                                slot.status === 'CONFIRMED' ? 'success' : 
+                                                                slot.status === 'REJECTED' ? 'danger' : 
+                                                                'warning'
+                                                            }>
+                                                                {slot.status || "PENDING"}
                                                             </Badge>
                                                         </td>
                                                         <td>
-                                                            <Button variant="outline-info" size="sm">
-                                                                View Details
-                                                            </Button>
+                                                            <div className="d-flex gap-2">
+                                                                {slot.status === 'PENDING' && (
+                                                                    <>
+                                                                        <Button 
+                                                                            variant="outline-success" 
+                                                                            size="sm" 
+                                                                            className="d-flex align-items-center gap-1"
+                                                                            onClick={() => handleUpdateAppointmentStatus(slot.id, 'confirmed')}
+                                                                        >
+                                                                            <UserCheck size={14} /> Accept
+                                                                        </Button>
+                                                                        <Button 
+                                                                            variant="outline-danger" 
+                                                                            size="sm" 
+                                                                            className="d-flex align-items-center gap-1"
+                                                                            onClick={() => handleUpdateAppointmentStatus(slot.id, 'rejected')}
+                                                                        >
+                                                                            <UserX size={14} /> Reject
+                                                                        </Button>
+                                                                    </>
+                                                                )}
+                                                                <Button variant="outline-info" size="sm" className="d-flex align-items-center gap-1">
+                                                                    <Settings size={14} /> Details
+                                                                </Button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
