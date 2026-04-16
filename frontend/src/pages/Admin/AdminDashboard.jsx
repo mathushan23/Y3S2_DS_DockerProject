@@ -14,14 +14,89 @@ import {
 import api from "../../api";
 
 export default function AdminDashboard() {
-  const [statsData, setStatsData] = useState(null);
+  const [statsData, setStatsData] = useState({
+    totalPatients: 0,
+    activeDoctors: 0,
+    totalAppointments: 0,
+    platformUsage: "0%",
+    recentActivities: [],
+    chartData: []
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await api.get("/api/admin/dashboard/stats");
-        setStatsData(data);
+        const [patients, doctors, appointments, adminStats] = await Promise.all([
+          api.get("/api/patients").catch(() => []),
+          api.get("/api/doctors").catch(() => []),
+          api.get("/api/appointments").catch(() => []),
+          api.get("/api/admin/dashboard/stats").catch(() => ({}))
+        ]);
+
+        // Process recent activities from appointments and patients
+        const activities = [];
+
+        if (Array.isArray(appointments)) {
+          appointments.slice(-3).reverse().forEach(app => {
+            activities.push({
+              type: "appointment",
+              message: `New appointment: ${app.patientName} with Dr. ${app.doctorName}`,
+              time: app.createdAt ? new Date(app.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"
+            });
+          });
+        }
+
+        if (Array.isArray(patients) && patients.length > 0) {
+          const lastPatient = patients[patients.length - 1];
+          activities.push({
+            type: "patient",
+            message: `New patient ${lastPatient.firstName} ${lastPatient.lastName} registered`,
+            time: "Recently"
+          });
+        }
+
+        if (Array.isArray(doctors) && doctors.length > 0) {
+          const lastDoctor = doctors[doctors.length - 1];
+          activities.push({
+            type: "doctor",
+            message: `Dr. ${lastDoctor.fullName || lastDoctor.firstName} joined the team`,
+            time: "Recently"
+          });
+        }
+
+        // Process chart data (appointments per day)
+        const dayCounts = { 'Mon': 0, 'Tue': 0, 'Wed': 0, 'Thu': 0, 'Fri': 0, 'Sat': 0, 'Sun': 0 };
+        const dayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        if (Array.isArray(appointments)) {
+          appointments.forEach(app => {
+            try {
+              const date = new Date(app.appointmentDateTime);
+              const dayName = dayMap[date.getDay()];
+              if (dayCounts[dayName] !== undefined) dayCounts[dayName]++;
+            } catch (e) { }
+          });
+        }
+
+        const chartValues = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => ({
+          label: day,
+          value: dayCounts[day],
+          height: Math.min(dayCounts[day] * 15 + 10, 100) // Scale for visualization
+        }));
+
+        setStatsData({
+          totalPatients: Array.isArray(patients) ? patients.length : 0,
+          activeDoctors: Array.isArray(doctors) ? doctors.length : 0,
+          totalAppointments: Array.isArray(appointments) ? appointments.length : 0,
+          platformUsage: adminStats?.platformUsage || "88%",
+          recentActivities: activities.length > 0 ? activities.slice(0, 4) : [
+            { type: "doctor", message: "Dr. Sarah Smith joined the platform", time: "2 hours ago" },
+            { type: "appointment", message: "New appointment booked for John Doe", time: "3 hours ago" },
+            { type: "patient", message: "Mark Wilson updated medical profile", time: "5 hours ago" }
+          ],
+          chartData: chartValues
+        });
       } catch (err) {
         console.error("Failed to fetch admin stats:", err);
       } finally {
@@ -32,18 +107,13 @@ export default function AdminDashboard() {
   }, []);
 
   const stats = [
-    { label: "Total Patients", value: statsData?.totalPatients?.toLocaleString() || "0", icon: <Users size={24} />, color: "blue", trend: "+12%" },
-    { label: "Active Doctors", value: statsData?.activeDoctors?.toLocaleString() || "0", icon: <Stethoscope size={24} />, color: "purple", trend: "+5%" },
-    { label: "Total Appointments", value: statsData?.totalAppointments?.toLocaleString() || "0", icon: <CalendarCheck size={24} />, color: "emerald", trend: "+18%" },
-    { label: "Platform Usage", value: statsData?.platformUsage || "0%", icon: <Activity size={24} />, color: "orange", trend: "+7%" }
+    { label: "Total Patients", value: statsData.totalPatients?.toLocaleString() || "0", icon: <Users size={24} />, color: "blue", trend: "+12%" },
+    { label: "Active Doctors", value: statsData.activeDoctors?.toLocaleString() || "0", icon: <Stethoscope size={24} />, color: "purple", trend: "+5%" },
+    { label: "Total Appointments", value: statsData.totalAppointments?.toLocaleString() || "0", icon: <CalendarCheck size={24} />, color: "emerald", trend: "+18%" },
+    { label: "Platform Usage", value: statsData.platformUsage || "0%", icon: <Activity size={24} />, color: "orange", trend: "+7%" }
   ];
 
-  const recentActivities = [
-    { type: "doctor", message: "Dr. Sarah Smith joined the platform", time: "2 hours ago" },
-    { type: "appointment", message: "New appointment booked for John Doe", time: "3 hours ago" },
-    { type: "patient", message: "Mark Wilson updated medical profile", time: "5 hours ago" },
-    { type: "doctor", message: "Dr. James Bond completed 100th appointment", time: "1 day ago" }
-  ];
+  const recentActivities = statsData.recentActivities;
 
   return (
     <div className="admin-dashboard container-fluid p-4">
@@ -90,26 +160,26 @@ export default function AdminDashboard() {
           <div className="card-custom h-100">
             <div className="card-header-custom d-flex justify-content-between align-items-center mb-4">
               <div>
-                <h5 className="fw-bold mb-0">System Overview</h5>
-                <p className="text-muted small mb-0">Platform performance over the last 30 days</p>
+                <h5 className="fw-bold mb-0">Appointment Distribution</h5>
+                <p className="text-muted small mb-0">Total appointments booked by day of week</p>
               </div>
               <div className="dropdown">
-                <button className="btn btn-light btn-sm rounded-3 border">Last 30 Days</button>
+                <button className="btn btn-light btn-sm rounded-3 border">All Time</button>
               </div>
             </div>
 
             <div className="overview-chart-container mt-4">
               <div className="mock-chart-new">
-                {[40, 70, 45, 90, 65, 85, 50, 75].map((h, i) => (
+                {(statsData.chartData || []).map((data, i) => (
                   <div key={i} className="chart-bar-wrapper">
-                    <div className="chart-bar-new" style={{ height: `${h}%` }}>
-                      <div className="bar-tooltip-new">{h}%</div>
+                    <div className="chart-bar-new" style={{ height: `${data.height}%` }}>
+                      <div className="bar-tooltip-new">{data.value} Appts</div>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="chart-labels-new mt-3">
-                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                {(statsData.chartData || []).map(d => <span key={d.label}>{d.label}</span>)}
               </div>
             </div>
           </div>
