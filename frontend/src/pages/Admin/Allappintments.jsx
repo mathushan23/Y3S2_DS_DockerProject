@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Search, 
-  Filter, 
-  Calendar, 
-  Clock, 
-  User, 
+import {
+  Search,
+  Filter,
+  Calendar,
+  Clock,
+  User,
   Stethoscope,
   MoreHorizontal,
   Download,
@@ -34,30 +34,34 @@ export default function AllAppointments() {
   }, []);
 
   return (
-    <div className="all-appointments">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="all-appointments container-fluid p-4">
+      <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
-          <h2 className="fw-bold mb-1">Master Appointment Schedule</h2>
-          <p className="text-white-50">Global view across all doctors and patients</p>
+          <h1 className="fw-bold text-dark mb-1">Master Appointment Schedule</h1>
+          <p className="text-muted mb-0">Global view across all doctors and patients</p>
         </div>
-        <button className="btn-glass">
-          <Download size={18} className="me-2" />
-          Export Schedule
+        <button className="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm">
+          <Download size={18} />
+          <span>Export Schedule</span>
         </button>
       </div>
 
-      <div className="glass-panel">
-        <div className="table-controls d-flex gap-3 mb-4">
-          <div className="search-box">
-            <Search size={18} />
-            <input type="text" placeholder="Search by ID, Patient or Doctor..." />
+      <div className="card-custom border-0 shadow-sm rounded-4 overflow-hidden">
+        <div className="table-controls p-4 bg-white border-bottom d-flex gap-3">
+          <div className="search-box-new flex-grow-1">
+            <Search size={18} className="search-icon" />
+            <input type="text" className="form-control ps-5 py-2 rounded-3 border-light-subtle" placeholder="Search by ID, Patient or Doctor..." />
           </div>
-          <div className="date-filter">
-             <Calendar size={18} className="icon-left" />
-             <input type="date" className="date-input" />
+          <div className="date-filter-new h-100">
+            <div className="input-group">
+              <span className="input-group-text bg-white border-light-subtle rounded-start-3">
+                <Calendar size={18} className="text-muted" />
+              </span>
+              <input type="date" className="form-control border-light-subtle rounded-end-3 py-2" />
+            </div>
           </div>
-          <button className="btn-icon">
-            <Filter size={18} />
+          <button className="btn btn-light border-light-subtle rounded-3 px-3">
+            <Filter size={18} className="text-muted" />
           </button>
         </div>
 
@@ -65,73 +69,73 @@ export default function AllAppointments() {
           {loading ? (
             <div className="d-flex justify-content-center align-items-center py-5">
               <Loader2 className="animate-spin text-primary" size={40} />
-              <span className="ms-3 text-white-50">Loading appointment records...</span>
+              <span className="ms-3 text-muted">Loading appointment records...</span>
             </div>
           ) : appointments.length === 0 ? (
             <div className="text-center py-5">
-              <p className="text-white-50">No appointments found in the system.</p>
+              <p className="text-muted">No appointments found in the system.</p>
             </div>
           ) : (
-            <table className="table custom-table">
-              <thead>
+            <table className="table table-hover align-middle mb-0">
+              <thead className="bg-light-subtle text-muted text-uppercase small fw-bold">
                 <tr>
-                  <th>Appt. ID</th>
-                  <th>Patient Details</th>
-                  <th>Medical Professional</th>
-                  <th>Schedule</th>
-                  <th>Specialty</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th className="ps-4 py-3">Appt. ID</th>
+                  <th className="py-3">Patient Details</th>
+                  <th className="py-3">Medical Professional</th>
+                  <th className="py-3">Schedule</th>
+                  <th className="py-3">Specialty</th>
+                  <th className="py-3">Status</th>
+                  <th className="pe-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {appointments.map((apt) => (
                   <tr key={apt.id}>
-                    <td>
-                      <span className="appt-id">#{apt.id}</span>
+                    <td className="ps-4">
+                      <span className="appt-id-badge">{apt.id}</span>
                     </td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
-                         <div className="mini-avatar-p">
-                           <User size={14} />
-                         </div>
-                         <span className="fw-bold">{apt.patientName}</span>
+                        <div className="avatar-small p-bg text-white">
+                          {apt.patientName?.charAt(0)}
+                        </div>
+                        <span className="fw-bold text-dark">{apt.patientName}</span>
                       </div>
                     </td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
-                         <div className="mini-avatar-d">
-                           <Stethoscope size={14} />
-                         </div>
-                         <span>{apt.doctorName}</span>
+                        <div className="avatar-small d-bg text-white">
+                          {apt.doctorName?.charAt(0)}
+                        </div>
+                        <span className="text-secondary">{apt.doctorName}</span>
                       </div>
                     </td>
                     <td>
                       <div className="schedule-info">
-                        <div className="d-flex align-items-center gap-1 small text-white-50">
+                        <div className="d-flex align-items-center gap-1 small text-muted">
                           <Calendar size={12} />
                           <span>{new Date(apt.appointmentDateTime).toLocaleDateString()}</span>
                         </div>
-                        <div className="d-flex align-items-center gap-1 small fw-600">
+                        <div className="d-flex align-items-center gap-1 small fw-bold text-dark">
                           <Clock size={12} />
                           <span>{new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span className="type-tag">{apt.specialty}</span>
+                      <span className="specialty-tag">{apt.specialty}</span>
                     </td>
                     <td>
-                      <div className={`status-pill ${(apt.status || "PENDING").toLowerCase()}`}>
-                         {apt.status === "CONFIRMED" && <CheckCircle2 size={12} className="me-1" />}
-                         {apt.status === "PENDING" && <AlertCircle size={12} className="me-1" />}
-                         {apt.status === "CANCELLED" && <XCircle size={12} className="me-1" />}
-                         <span>{apt.status}</span>
+                      <div className={`status-pill-new ${(apt.status || "PENDING").toLowerCase()}`}>
+                        {apt.status === "CONFIRMED" && <CheckCircle2 size={12} className="me-1" />}
+                        {apt.status === "PENDING" && <AlertCircle size={12} className="me-1" />}
+                        {apt.status === "CANCELLED" && <XCircle size={12} className="me-1" />}
+                        <span>{apt.status}</span>
                       </div>
                     </td>
-                    <td>
-                      <button className="action-btn-minimal">
-                        <MoreHorizontal size={18} />
+                    <td className="pe-4">
+                      <button className="btn btn-light btn-sm rounded-circle shadow-none border-0 p-2">
+                        <MoreHorizontal size={18} className="text-muted" />
                       </button>
                     </td>
                   </tr>
@@ -144,93 +148,61 @@ export default function AllAppointments() {
 
       <style>{`
         .all-appointments {
-          animation: fadeIn 0.8s ease-out;
+          background-color: var(--bg-main);
+          min-height: 100vh;
         }
 
-        .btn-glass {
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          color: #fff;
-          padding: 0.6rem 1.25rem;
-          border-radius: 12px;
-          backdrop-filter: blur(8px);
-          transition: all 0.3s;
-          display: flex;
-          align-items: center;
+        .card-custom {
+          background: white;
         }
 
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 24px;
-          padding: 1.5rem;
-          backdrop-filter: blur(10px);
-        }
-
-        .search-box {
+        .search-box-new {
           position: relative;
-          flex: 1;
-          display: flex;
-          align-items: center;
         }
 
-        .search-box svg {
+        .search-icon {
           position: absolute;
-          left: 1rem;
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .search-box input {
-          width: 100%;
-          padding: 0.75rem 1rem 0.75rem 3rem;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          color: #fff;
-          outline: none;
-        }
-
-        .date-filter {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .icon-left {
-          position: absolute;
-          left: 1rem;
-          color: rgba(255, 255, 255, 0.4);
+          left: 1.25rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
           pointer-events: none;
         }
 
-        .date-input {
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          padding: 0.75rem 1rem 0.75rem 3rem;
-          color: #fff;
-          outline: none;
-        }
-
-        .appt-id {
-          font-family: 'Monaco', monospace;
-          color: #60a5fa;
+        .appt-id-badge {
+          font-family: 'JetBrains Mono', monospace;
+          background: #f1f5f9;
+          color: #475569;
+          padding: 4px 8px;
+          border-radius: 6px;
+          font-size: 0.8rem;
           font-weight: 600;
-          font-size: 0.85rem;
         }
 
-        .mini-avatar-p { background: rgba(16, 185, 129, 0.2); color: #34d399; padding: 6px; border-radius: 8px; }
-        .mini-avatar-d { background: rgba(139, 92, 246, 0.2); color: #a78bfa; padding: 6px; border-radius: 8px; }
-
-        .type-tag {
+        .avatar-small {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-size: 0.75rem;
-          background: rgba(255, 255, 255, 0.05);
+          font-weight: 700;
+        }
+
+        .p-bg { background: linear-gradient(135deg, #10b981, #059669); }
+        .d-bg { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        .specialty-tag {
+          font-size: 0.75rem;
+          background: #f8fafc;
           padding: 4px 10px;
           border-radius: 6px;
-          color: rgba(255, 255, 255, 0.7);
+          color: #64748b;
+          border: 1px solid #e2e8f0;
         }
 
-        .status-pill {
+        .status-pill-new {
           display: inline-flex;
           align-items: center;
           padding: 4px 12px;
@@ -239,20 +211,14 @@ export default function AllAppointments() {
           font-weight: 600;
         }
 
-        .status-pill.confirmed { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
-        .status-pill.pending { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
-        .status-pill.completed { background: rgba(52, 211, 153, 0.15); color: #34d399; }
-        .status-pill.cancelled { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-pill-new.confirmed { background: #ecf3ff; color: #2563eb; }
+        .status-pill-new.pending { background: #fff7ed; color: #f59e0b; }
+        .status-pill-new.completed { background: #ecfdf5; color: #10b981; }
+        .status-pill-new.cancelled { background: #fef2f2; color: #ef4444; }
 
-        .action-btn-minimal {
-          background: transparent;
-          border: none;
-          color: rgba(255, 255, 255, 0.4);
-          transition: color 0.2s;
-        }
-
-        .action-btn-minimal:hover {
-          color: #fff;
+        .form-control:focus {
+          border-color: #3b82f633;
+          box-shadow: 0 0 0 4px #3b82f61a;
         }
 
         @keyframes fadeIn {

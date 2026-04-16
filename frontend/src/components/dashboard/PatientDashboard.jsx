@@ -55,17 +55,17 @@ export default function PatientDashboard({ user }) {
   };
 
   return (
-    <div className="patient-dashboard-v2 animate-fade-in">
+    <div className="patient-dashboard-v2 animate-fade-in container-fluid p-4">
       {/* Welcome Header */}
       <header className="welcome-section mb-5">
-        <div className="d-flex justify-content-between align-items-end">
+        <div className="d-flex justify-content-between align-items-center">
           <div>
-            <h1 className="display-5 fw-bold mb-1">
-              Welcome, <span className="gradient-text">{user?.fullName?.split(" ")[0] || "Patient"}</span>
+            <h1 className="fw-bold text-dark mb-1">
+              Welcome back, <span className="text-primary">{user?.fullName?.split(" ")[0] || "Patient"}</span>
             </h1>
-            <p className="text-white-50 fs-5 mb-0">Your personalized health sanctuary is updated and ready.</p>
+            <p className="text-secondary mb-0">Your personalized health sanctuary is updated and ready.</p>
           </div>
-          <div className="date-chip">
+          <div className="date-chip-new shadow-sm">
             <Calendar size={18} className="me-2 text-primary" />
             <span>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           </div>
@@ -75,33 +75,35 @@ export default function PatientDashboard({ user }) {
       <div className="row g-4 mb-5">
         {/* Main Stats */}
         <div className="col-lg-8">
-          <div className="glass-panel main-hero">
+          <div className="hero-card shadow-sm h-100 p-4 rounded-4 border-0">
             <div className="row h-100 align-items-center">
               <div className="col-md-7">
-                <div className="badge-ai mb-3">
+                <div className="badge-ai-new mb-3">
                   <Sparkles size={14} className="me-2" />
                   AI-Powered Health Analysis
                 </div>
-                <h2 className="fw-bold mb-3 h1">Connect with the best medical minds.</h2>
-                <p className="text-white-50 mb-4">
+                <h2 className="fw-bold text-dark mb-3">Connect with our top medical minds.</h2>
+                <p className="text-secondary mb-4">
                   Schedule virtual or in-person visits with verified professionals. Your health metrics are within normal range.
                 </p>
                 <div className="d-flex gap-2">
-                  <button className="btn-premium" onClick={() => navigate("/appointments")}>
+                  <button className="btn btn-primary px-4 py-2 rounded-pill shadow-sm" onClick={() => navigate("/appointments")}>
                     Book Appointment
                   </button>
-                  <button className="btn-glass" onClick={() => navigate("/symptom-checker")}>
+                  <button className="btn btn-outline-primary px-4 py-2 rounded-pill shadow-none" onClick={() => navigate("/symptom-checker")}>
                     Check Symptoms
                   </button>
                 </div>
               </div>
               <div className="col-md-5 d-none d-md-block">
-                <div className="hero-stats-grid">
+                <div className="hero-stats-grid-new">
                   {stats.map((stat, i) => (
-                    <div key={i} className="mini-stat-card">
-                      <div className="icon" style={{ backgroundColor: `${stat.color}20`, color: stat.color }}>{stat.icon}</div>
-                      <span className="val">{stat.value}</span>
-                      <span className="unit">{stat.unit}</span>
+                    <div key={i} className="mini-stat-card-new shadow-sm border-0">
+                      <div className="icon-wrapper" style={{ backgroundColor: `${stat.color}15`, color: stat.color }}>{stat.icon}</div>
+                      <div className="stat-info">
+                        <span className="val text-dark">{stat.value}</span>
+                        <span className="unit">{stat.unit}</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -112,32 +114,32 @@ export default function PatientDashboard({ user }) {
 
         {/* Notifications / Next Appt */}
         <div className="col-lg-4">
-          <div className="glass-panel next-appt h-100">
-            <div className="panel-header mb-4">
-              <h5 className="mb-0 fw-bold">Up Next</h5>
-              <div className="pulse-dot"></div>
+          <div className="card-custom h-100 shadow-sm border-0 rounded-4 p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="mb-0 fw-bold text-dark">Upcoming Consultation</h5>
+              <div className="pulse-dot-new"></div>
             </div>
-            <div className="appt-card-mini mb-4">
+            <div className="appt-card-v2 p-3 rounded-4 bg-light border-0">
               <div className="d-flex gap-3 mb-3">
-                <div className="doctor-avatar-mini">SM</div>
+                <div className="doctor-avatar-circle shadow-sm">SM</div>
                 <div>
-                  <h6 className="mb-0">Dr. Sarah Miller</h6>
-                  <p className="text-white-50 small mb-0">Cardiology Specialist</p>
+                  <h6 className="mb-0 text-dark fw-bold">Dr. Sarah Miller</h6>
+                  <p className="text-muted small mb-0">Cardiology Specialist</p>
                 </div>
               </div>
-              <div className="time-info p-3 mb-3">
+              <div className="schedule-box p-3 rounded-3 bg-white mb-3 shadow-none border">
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <Calendar size={14} className="text-primary" />
-                  <span className="small fw-semibold">October 24, 2024</span>
+                  <span className="small fw-bold text-dark text-opacity-75">October 24, 2024</span>
                 </div>
                 <div className="d-flex align-items-center gap-2">
                   <Clock size={14} className="text-primary" />
-                  <span className="small fw-semibold">10:30 AM (Online)</span>
+                  <span className="small fw-bold text-dark text-opacity-75">10:30 AM (Online Visit)</span>
                 </div>
               </div>
-              <button className="btn-outline-glass w-100">
-                <Video size={16} className="me-2" />
-                Join Consultation
+              <button className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2 rounded-pill py-2">
+                <Video size={16} />
+                <span>Join Consultation</span>
               </button>
             </div>
           </div>
@@ -148,10 +150,10 @@ export default function PatientDashboard({ user }) {
       <section className="recommended-doctors mb-5">
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h3 className="fw-bold mb-1">Top Medical Professionals</h3>
-            <p className="text-white-50 small">Based on your health profile and recent activity</p>
+            <h3 className="fw-bold text-dark mb-1">Top Medical Professionals</h3>
+            <p className="text-secondary small">Based on your health profile and recent activity</p>
           </div>
-          <button className="text-primary btn-link-premium">
+          <button className="btn btn-link text-decoration-none fw-bold p-0 d-flex align-items-center" onClick={() => navigate("/doctors")}>
             Browse All <ChevronRight size={18} />
           </button>
         </div>
@@ -162,53 +164,51 @@ export default function PatientDashboard({ user }) {
               <Loader2 className="animate-spin text-primary" size={32} />
             </div>
           ) : doctors.length === 0 ? (
-            <div className="empty-state p-5 text-center w-100">
-              <Stethoscope size={48} className="text-white-10 mb-3" />
-              <p className="text-white-50">No medical professionals available currently.</p>
+            <div className="empty-state p-5 text-center w-100 bg-light rounded-4">
+              <Stethoscope size={48} className="text-muted opacity-25 mb-3" />
+              <p className="text-muted">No medical professionals available currently.</p>
             </div>
           ) : (
             <div className="row g-4">
-              {doctors.map((doctor) => (
-                <div key={doctor.id} className="col-md-4 col-lg-3">
-                  <div className="doctor-card-premium">
-                    <div className="doctor-image-wrapper">
+              {doctors.slice(0, 4).map((doctor) => (
+                <div key={doctor.id} className="col-md-6 col-lg-3">
+                  <div className="doctor-card-new shadow-sm border-0 rounded-4 h-100">
+                    <div className="position-relative overflow-hidden rounded-top-4">
                       <img 
                         src={doctor.profilePhotoUrl || getDoctorImg(doctor.gender, doctor.id)} 
                         alt={doctor.fullName} 
-                        className="doctor-img"
+                        className="doctor-image-v2"
                       />
-                      <div className="rating-badge">
+                      <div className="rating-badge-new">
                         <Star size={12} className="fill-warning text-warning me-1" />
                         {doctor.averageRating || "4.8"}
                       </div>
                     </div>
-                    <div className="doctor-info p-3">
-                      <div className="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                          <h6 className="doctor-name mb-0">{doctor.fullName}</h6>
-                          <p className="specialty-text mb-0">{doctor.specialty}</p>
-                        </div>
-                        <div className="verified-check">
-                          <Activity size={12} />
-                        </div>
+                    <div className="p-3">
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                         <h6 className="text-dark fw-bold mb-0">{doctor.fullName}</h6>
+                         <div className="verified-badge">
+                            <Activity size={12} />
+                         </div>
                       </div>
+                      <p className="text-primary small fw-bold mb-3">{doctor.specialty}</p>
                       
-                      <div className="doctor-meta-grid mb-3">
-                        <div className="meta-item">
-                           <Users size={12} className="me-1" />
-                           <span>{doctor.totalPatients || 0}+ patients</span>
-                        </div>
-                        <div className="meta-item">
-                           <MapPin size={12} className="me-1" />
-                           <span>{doctor.clinicName || "City Clinic"}</span>
-                        </div>
+                      <div className="meta-info-grid mb-3">
+                         <div className="meta-cell">
+                            <Users size={12} className="me-1" />
+                            <span>{doctor.totalPatients || 0}+ patients</span>
+                         </div>
+                         <div className="meta-cell">
+                            <MapPin size={12} className="me-1" />
+                            <span>{doctor.clinicName || "City Clinic"}</span>
+                         </div>
                       </div>
 
                       <button 
-                        className="btn-book-mini w-100"
+                        className="btn btn-light w-100 rounded-3 fw-bold btn-sm py-2 shadow-none border"
                         onClick={() => navigate(`/appointments?doctorId=${doctor.id}`)}
                       >
-                        Book Now
+                        Book Appointment
                       </button>
                     </div>
                   </div>
@@ -222,49 +222,54 @@ export default function PatientDashboard({ user }) {
       {/* Medical History & Activity */}
       <div className="row g-4">
         <div className="col-lg-6">
-          <div className="glass-panel">
-            <h5 className="fw-bold mb-4">Active Prescriptions</h5>
+          <div className="card-custom shadow-sm border-0 rounded-4 p-4 h-100">
+            <h5 className="fw-bold text-dark mb-4">Active Prescriptions</h5>
             <div className="prescription-feed">
                {[
-                 { name: "Metformin", dosage: "500mg", schedule: "Twice Daily", remaining: 12 },
-                 { name: "Atorvastatin", dosage: "20mg", schedule: "Bedtime", remaining: 24 }
+                 { name: "Metformin", dosage: "500mg", schedule: "Twice Daily", remaining: 12, color: "#3b82f6" },
+                 { name: "Atorvastatin", dosage: "20mg", schedule: "Bedtime", remaining: 24, color: "#10b981" }
                ].map((med, i) => (
-                 <div key={i} className="med-item-v2">
-                   <div className="med-icon">
+                 <div key={i} className="med-card-new shadow-none border bg-light mb-3">
+                   <div className="med-icon-v2" style={{ backgroundColor: `${med.color}15`, color: med.color }}>
                      <Pill size={20} />
                    </div>
                    <div className="flex-grow-1">
-                     <h6 className="mb-0">{med.name}</h6>
-                     <span className="text-white-50 small">{med.dosage} • {med.schedule}</span>
+                     <h6 className="mb-0 text-dark fw-bold">{med.name}</h6>
+                     <span className="text-muted small">{med.dosage} • {med.schedule}</span>
                    </div>
-                   <div className="med-status">
-                     <div className="progress-mini">
-                       <div className="progress-bar" style={{ width: `${(med.remaining/30)*100}%` }}></div>
+                   <div className="med-progress-info">
+                     <div className="progress-custom">
+                       <div className="progress-bar-inner" style={{ width: `${(med.remaining/30)*100}%`, backgroundColor: med.color }}></div>
                      </div>
-                     <span className="text-white-50 tiny">{med.remaining} days left</span>
+                     <span className="text-muted tiny fw-bold">{med.remaining} days left</span>
                    </div>
                  </div>
                ))}
             </div>
+            <button className="btn btn-link text-decoration-none p-0 mt-3 small fw-bold">View History</button>
           </div>
         </div>
 
         <div className="col-lg-6">
-          <div className="glass-panel">
-            <h5 className="fw-bold mb-4">Recent Health Log</h5>
-            <div className="notification-list">
-              <div className="notif-item">
-                <div className="notif-icon info"><Bell size={16} /></div>
-                <div className="notif-body">
-                  <p className="mb-0">Lab results for <strong>Blood Work</strong> are now available.</p>
-                  <span className="tiny text-white-50">2 hours ago</span>
+          <div className="card-custom shadow-sm border-0 rounded-4 p-4 h-100">
+            <h5 className="fw-bold text-dark mb-4">Recent Health Activity</h5>
+            <div className="activity-feed-new">
+              <div className="activity-item-v2 mb-4">
+                <div className="activity-dot info">
+                  <Bell size={16} />
+                </div>
+                <div className="ps-4 position-relative border-start">
+                  <p className="text-dark mb-1">Lab results for <strong className="text-primary">Blood Work</strong> are now available.</p>
+                  <span className="text-muted small">2 hours ago</span>
                 </div>
               </div>
-              <div className="notif-item">
-                <div className="notif-icon success"><History size={16} /></div>
-                <div className="notif-body">
-                  <p className="mb-0">Payment for last visit was processed successfully.</p>
-                  <span className="tiny text-white-50">Yesterday</span>
+              <div className="activity-item-v2">
+                <div className="activity-dot success">
+                  <History size={16} />
+                </div>
+                <div className="ps-4 position-relative border-start">
+                  <p className="text-dark mb-1">Payment for last visit was processed successfully.</p>
+                  <span className="text-muted small">Yesterday</span>
                 </div>
               </div>
             </div>
@@ -274,50 +279,34 @@ export default function PatientDashboard({ user }) {
 
       <style>{`
         .patient-dashboard-v2 {
-          color: #fff;
-          padding-bottom: 3rem;
+          background-color: var(--bg-main);
+          min-height: 100vh;
         }
 
-        .gradient-text {
-          background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .date-chip {
+        .date-chip-new {
           padding: 0.6rem 1.25rem;
-          background: rgba(255, 255, 255, 0.05);
+          background: white;
           border-radius: 100px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid #f1f5f9;
           font-size: 0.9rem;
           display: flex;
           align-items: center;
-          font-weight: 500;
+          font-weight: 600;
+          color: #475569;
         }
 
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 28px;
-          padding: 2rem;
-          transition: transform 0.3s ease;
+        .hero-card {
+           background: white;
+           background-image: radial-gradient(at 100% 0%, #eff6ff 0%, transparent 40%);
         }
 
-        .main-hero {
-          background: 
-            radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent),
-            linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .badge-ai {
+        .badge-ai-new {
           display: inline-flex;
           align-items: center;
           padding: 6px 14px;
-          background: rgba(167, 139, 250, 0.15);
-          color: #a78bfa;
+          background: #f5f3ff;
+          color: #8b5cf6;
+          border: 1px solid #ddd6fe;
           border-radius: 100px;
           font-size: 0.75rem;
           font-weight: 700;
@@ -325,240 +314,135 @@ export default function PatientDashboard({ user }) {
           text-transform: uppercase;
         }
 
-        .btn-premium {
-          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-          color: #fff;
-          border: none;
-          padding: 0.8rem 1.75rem;
-          border-radius: 16px;
-          font-weight: 600;
-          transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
-        }
-
-        .btn-premium:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 15px 30px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-glass {
-          background: rgba(255, 255, 255, 0.08);
-          color: #fff;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          padding: 0.8rem 1.75rem;
-          border-radius: 16px;
-          font-weight: 600;
-          transition: all 0.3s;
-        }
-
-        .btn-glass:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .hero-stats-grid {
+        .hero-stats-grid-new {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 15px;
+          gap: 12px;
         }
 
-        .mini-stat-card {
+        .mini-stat-card-new {
           padding: 1rem;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.06);
+          background: white;
           border-radius: 20px;
-          text-align: center;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          border: 1px solid #f8fafc;
         }
 
-        .mini-stat-card .icon {
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          margin: 0 auto 10px;
+        .icon-wrapper {
+          width: 40px;
+          height: 40px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .mini-stat-card .val { font-size: 1.25rem; font-weight: 800; display: block; }
-        .mini-stat-card .unit { font-size: 0.75rem; color: rgba(255,255,255,0.4); }
+        .mini-stat-card-new .val { font-size: 1.1rem; font-weight: 700; display: block; }
+        .mini-stat-card-new .unit { font-size: 0.75rem; color: #94a3b8; }
 
-        .pulse-dot {
+        .card-custom { background: white; }
+
+        .pulse-dot-new {
           width: 8px;
           height: 8px;
           background: #3b82f6;
           border-radius: 50%;
           position: relative;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .pulse-dot::after {
-          content: "";
-          position: absolute;
+        .doctor-avatar-circle {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #3b82f6, #6366f1);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+        }
+
+        .doctor-card-new { background: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .doctor-card-new:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.06) !important; }
+
+        .doctor-image-v2 {
           width: 100%;
-          height: 100%;
-          background: inherit;
-          border-radius: inherit;
-          animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 1; }
-          100% { transform: scale(3.5); opacity: 0; }
-        }
-
-        .doctor-card-premium {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          overflow: hidden;
-          transition: all 0.4s ease;
-          position: relative;
-        }
-
-        .doctor-card-premium:hover {
-          transform: translateY(-8px);
-          border-color: rgba(59, 130, 246, 0.3);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        }
-
-        .doctor-image-wrapper {
-          height: 180px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .doctor-img {
-          width: 100%;
-          height: 100%;
+          height: 190px;
           object-fit: cover;
           transition: transform 0.5s ease;
         }
 
-        .doctor-card-premium:hover .doctor-img {
-          transform: scale(1.1);
-        }
-
-        .rating-badge {
+        .rating-badge-new {
           position: absolute;
-          bottom: 12px;
+          top: 12px;
           right: 12px;
-          background: rgba(0, 0, 0, 0.6);
-          backdrop-filter: blur(8px);
+          background: white;
           padding: 4px 10px;
           border-radius: 100px;
           font-size: 0.75rem;
-          font-weight: 700;
-          color: #fff;
+          font-weight: 800;
+          color: #1e293b;
           display: flex;
           align-items: center;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
 
-        .verified-check {
-          background: #3b82f6;
-          color: #fff;
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: glow 2s infinite alternate;
-        }
+        .meta-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .meta-cell { display: flex; align-items: center; font-size: 0.75rem; color: #64748b; font-weight: 500; }
 
-        @keyframes glow {
-          from { box-shadow: 0 0 2px #3b82f6; }
-          to { box-shadow: 0 0 8px #3b82f6; }
-        }
-
-        .doctor-name { font-weight: 700; color: #fff; }
-        .specialty-text { font-size: 0.8rem; color: #60a5fa; font-weight: 600; }
-
-        .doctor-meta-grid {
-          display: flex;
-          gap: 15px;
-          flex-wrap: wrap;
-        }
-
-        .meta-item {
-          display: flex;
-          align-items: center;
-          font-size: 0.75rem;
-          color: rgba(255, 255, 255, 0.5);
-        }
-
-        .btn-book-mini {
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #fff;
-          padding: 0.6rem;
-          border-radius: 12px;
-          font-weight: 600;
-          font-size: 0.85rem;
-          transition: all 0.2s;
-        }
-
-        .doctor-card-premium:hover .btn-book-mini {
-          background: #3b82f6;
-          border-color: #3b82f6;
-          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .med-item-v2 {
+        .med-card-new {
           display: flex;
           align-items: center;
           gap: 15px;
-          padding: 1.25rem;
-          background: rgba(255, 255, 255, 0.03);
-          border-radius: 20px;
-          margin-bottom: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.05);
+          padding: 1.15rem;
+          border-radius: 18px;
         }
 
-        .med-icon {
+        .med-icon-v2 {
           width: 44px;
           height: 44px;
-          background: rgba(96, 165, 250, 0.1);
-          color: #60a5fa;
-          border-radius: 14px;
+          border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        .progress-mini {
+        .progress-custom {
           width: 60px;
-          height: 4px;
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 100px;
+          height: 5px;
+          background: #e2e8f0;
+          border-radius: 10px;
           overflow: hidden;
           margin-bottom: 4px;
         }
 
-        .progress-bar {
-          height: 100%;
-          background: #3b82f6;
-          border-radius: inherit;
-        }
+        .progress-bar-inner { height: 100%; border-radius: inherit; }
 
-        .notif-item {
-          display: flex;
-          gap: 15px;
-          margin-bottom: 20px;
-        }
-
-        .notif-icon {
+        .activity-dot {
           width: 36px;
           height: 36px;
           border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          flex-shrink: 0;
+          position: absolute;
+          left: -18px;
+          background: white;
+          z-index: 2;
+          box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+          border: 1px solid #f1f5f9;
         }
 
-        .notif-icon.info { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
-        .notif-icon.success { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .activity-dot.info { color: #3b82f6; }
+        .activity-dot.success { color: #10b981; }
 
+        .activity-item-v2 { position: relative; }
+        .border-start { border-color: #f1f5f9 !important; border-width: 2px !important; }
+
+        .fw-500 { font-weight: 500; }
         .tiny { font-size: 0.7rem; }
 
         @keyframes fadeIn {

@@ -1,109 +1,130 @@
+import { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
-import { HeartPulse, Bell, User, Search, ChevronRight } from "lucide-react";
+import { HeartPulse, Bell, User, Search, ChevronRight, Menu } from "lucide-react";
 
 export default function Layout() {
   const { user, isAuthenticated } = useAuth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-      <>
-        <div className="smart-app-layout">
-          <Sidebar />
+    <>
+      <div className={`smart-app-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <Sidebar isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
 
-          <div className="smart-main-wrapper">
-            <header className="smart-top-header">
-              <div className="smart-header-left">
+        <div className="smart-main-wrapper">
+          <header className="smart-top-header py-2">
+            <div className="smart-header-left">
+              <div className="d-flex align-items-center gap-3">
+                {/* <button className="sidebar-toggle-btn shadow-sm" onClick={toggleSidebar}>
+                  <Menu size={20} />
+                </button> */}
                 <div className="smart-page-brand">
-                  <div className="smart-page-brand-icon">
+                  {/* <div className="smart-page-brand-icon">
                     <HeartPulse size={22} />
-                  </div>
+                  </div> */}
                   <div>
                     <h4 className="mb-0">SmartHealth</h4>
-                    <p className="mb-0">Healthcare Management Dashboard</p>
-                  </div>
-                </div>
-
-                <div className="smart-breadcrumb-mini">
-                  <span>Dashboard</span>
-                  <ChevronRight size={14} />
-                  <span className="active">Overview</span>
-                </div>
-              </div>
-
-              <div className="smart-header-right">
-                <div className="smart-header-search">
-                  <Search size={16} />
-                  <input type="text" placeholder="Search..." />
-                </div>
-
-                {/*<button className="smart-icon-btn" type="button">*/}
-                {/*  <Bell size={18} />*/}
-                {/*  <span className="smart-notification-dot"></span>*/}
-                {/*</button>*/}
-
-                <div className="smart-profile-chip">
-                  <div className="smart-profile-text">
-                    <p className="smart-profile-name mb-0">
-                      {user?.fullName || "Guest User"}
-                    </p>
-                    <p className="smart-profile-role mb-0">
-                      {user?.role || "Member"}
-                    </p>
-                  </div>
-
-                  <div className="smart-profile-avatar">
-                    <User size={20} />
+                    <p className="mb-0">Healthcare Management</p>
                   </div>
                 </div>
               </div>
-            </header>
 
-            <section className="smart-page-content animate-fade-in">
+              {/* <div className="smart-breadcrumb-mini">
+                <span>Dashboard</span>
+                <ChevronRight size={14} />
+                <span className="active">Overview</span>
+              </div> */}
+            </div>
+
+            <div className="smart-header-right">
+              <div className="smart-header-search">
+                <Search size={16} />
+                <input type="text" placeholder="Search records..." />
+              </div>
+
+              <div className="smart-profile-chip shadow-sm">
+                <div className="smart-profile-text">
+                  <p className="smart-profile-name mb-0">
+                    {user?.fullName || "Guest User"}
+                  </p>
+                  <p className="smart-profile-role mb-0 text-primary fw-bold">
+                    {user?.role || "Member"}
+                  </p>
+                </div>
+
+                <div className="smart-profile-avatar">
+                  <User size={20} />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="smart-page-content animate-fade-in shadow-sm">
+            <div className="content-container">
               <Outlet />
-            </section>
-          </div>
+            </div>
+          </main>
         </div>
+      </div>
 
-        <style>{`
+      <style>{`
+        :root {
+          --sidebar-width: 280px;
+          --sidebar-collapsed-width: 80px;
+          --header-height: 72px;
+          --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         .smart-app-layout {
           min-height: 100vh;
-          background:
-            radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 20%),
-            linear-gradient(180deg, #0b1220 0%, #111827 100%);
-          color: #fff;
+          background: #f8fafc;
+          overflow-x: hidden;
+          display: flex;
         }
 
         .smart-main-wrapper {
-          margin-left: 280px;
+          flex: 1;
+          margin-left: var(--sidebar-width);
           min-height: 100vh;
           display: flex;
           flex-direction: column;
+          transition: var(--transition);
+          width: calc(100% - var(--sidebar-width));
+        }
+
+        .sidebar-collapsed .smart-main-wrapper {
+          margin-left: var(--sidebar-collapsed-width);
+          width: calc(100% - var(--sidebar-collapsed-width));
         }
 
         .smart-top-header {
-          height: 88px;
-          padding: 0 1.75rem;
+          height: var(--header-height);
+          padding: 0 1.5rem;
           display: flex;
           align-items: center;
           justify-content: space-between;
           position: sticky;
           top: 0;
-          z-index: 900;
-          background: rgba(11, 18, 32, 0.75);
-          backdrop-filter: blur(14px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+          z-index: 1000;
+          background: #000e2e;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          width: 100%;
+          color: white;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
         .smart-header-left {
           display: flex;
-          flex-direction: column;
-          justify-content: center;
-          gap: 0.35rem;
+          align-items: center;
+          gap: 1.5rem;
         }
 
         .smart-page-brand {
@@ -113,42 +134,46 @@ export default function Layout() {
         }
 
         .smart-page-brand-icon {
-          width: 46px;
-          height: 46px;
-          border-radius: 14px;
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(59,130,246,0.32));
-          color: #60a5fa;
-          border: 1px solid rgba(96, 165, 250, 0.16);
-          box-shadow: 0 10px 24px rgba(0,0,0,0.2);
+          background: white;
+          color: #000e2e;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         .smart-page-brand h4 {
-          font-size: 1.05rem;
+          font-size: 1rem;
           font-weight: 700;
-          color: #ffffff;
+          color: white;
+          margin: 0;
+          line-height: 1.2;
         }
 
         .smart-page-brand p {
-          font-size: 0.78rem;
-          color: rgba(255, 255, 255, 0.52);
-          margin-top: 2px;
+          font-size: 0.65rem;
+          color: #94a3b8;
+          margin: 0;
         }
 
         .smart-breadcrumb-mini {
           display: flex;
           align-items: center;
-          gap: 0.35rem;
-          font-size: 0.78rem;
-          color: rgba(255, 255, 255, 0.48);
-          padding-left: 3.6rem;
+          gap: 0.4rem;
+          font-size: 0.75rem;
+          color: #64748b;
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
+          padding-left: 1.25rem;
+          height: 32px;
         }
 
         .smart-breadcrumb-mini .active {
-          color: #cbd5e1;
-          font-weight: 500;
+          color: #2563eb;
+          font-weight: 600;
         }
 
         .smart-header-right {
@@ -159,15 +184,20 @@ export default function Layout() {
 
         .smart-header-search {
           width: 260px;
-          height: 46px;
-          border-radius: 14px;
+          height: 38px;
+          border-radius: 10px;
           display: flex;
           align-items: center;
           gap: 0.65rem;
-          padding: 0 0.95rem;
-          background: rgba(255, 255, 255, 0.05);
+          padding: 0 0.85rem;
+          background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.08);
-          color: rgba(255, 255, 255, 0.55);
+          transition: all 0.2s;
+        }
+
+        .smart-header-search:focus-within {
+          border-color: #2563eb;
+          width: 300px;
         }
 
         .smart-header-search input {
@@ -175,101 +205,65 @@ export default function Layout() {
           background: transparent;
           border: none;
           outline: none;
-          color: #fff;
-          font-size: 0.9rem;
+          color: white;
+          font-size: 0.8rem;
         }
 
-        .smart-header-search input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
-        }
+        
 
-        .smart-icon-btn {
-          width: 46px;
-          height: 46px;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
-          border-radius: 14px;
+        .smart-profile-chip {
+          padding: 0.25rem 0.25rem 0.25rem 0.85rem;
+          border-radius: 10px;
           display: flex;
           align-items: center;
-          justify-content: center;
-          position: relative;
-          transition: all 0.25s ease;
+          gap: 0.75rem;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          cursor: pointer;
+          transition: all 0.2s;
         }
 
-        .smart-icon-btn:hover {
+        .smart-profile-chip:hover {
           background: rgba(255, 255, 255, 0.08);
           transform: translateY(-1px);
         }
 
-        .smart-notification-dot {
-          position: absolute;
-          top: 10px;
-          right: 11px;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: #ef4444;
-          box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
-        }
-
-        .smart-profile-chip {
-          min-height: 52px;
-          padding: 0.45rem 0.55rem 0.45rem 0.9rem;
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          gap: 0.8rem;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .smart-profile-text {
-          text-align: right;
-        }
-
-        .smart-profile-name {
-          font-size: 0.9rem;
-          font-weight: 700;
-          color: #fff;
-          line-height: 1.1;
-        }
-
-        .smart-profile-role {
-          font-size: 0.76rem;
-          color: rgba(255, 255, 255, 0.55);
-          text-transform: capitalize;
-          margin-top: 3px;
-        }
+        .smart-profile-text { text-align: right; }
+        .smart-profile-name { font-size: 0.8rem; font-weight: 600; color: white; line-height: 1.2; }
+        .smart-profile-role { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; color: #2563eb !important; font-weight: 800; }
 
         .smart-profile-avatar {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+          background: #2563eb;
           color: #fff;
-          flex-shrink: 0;
-          box-shadow: 0 10px 22px rgba(37, 99, 235, 0.25);
+          box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
         }
 
         .smart-page-content {
           flex: 1;
-          padding: 1.8rem;
+          padding: 1.5rem;
+          overflow-y: auto;
+          overflow-x: hidden;
+          background: #f8fafc;
+        }
+
+        .content-container {
+           max-width: 1600px;
+           margin: 0 auto;
+           width: 100%;
         }
 
         @media (max-width: 991.98px) {
           .smart-main-wrapper {
-            margin-left: 280px;
+            margin-left: 0 !important;
+            width: 100% !important;
           }
-
-          .smart-header-search {
-            display: none;
-          }
-
-          .smart-breadcrumb-mini {
+          .smart-header-search, .smart-breadcrumb-mini {
             display: none;
           }
         }
@@ -278,31 +272,13 @@ export default function Layout() {
           .smart-top-header {
             padding: 0 1rem;
             height: auto;
-            min-height: 88px;
-            flex-wrap: wrap;
-            gap: 1rem;
-            padding-top: 1rem;
-            padding-bottom: 1rem;
+            flex-wrap: nowrap;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
           }
-
-          .smart-header-left,
-          .smart-header-right {
-            width: 100%;
-          }
-
-          .smart-header-right {
-            justify-content: space-between;
-          }
-
-          .smart-profile-text {
-            text-align: left;
-          }
-
-          .smart-page-content {
-            padding: 1rem;
-          }
+           .smart-profile-text { display: none; }
         }
       `}</style>
-      </>
+    </>
   );
 }

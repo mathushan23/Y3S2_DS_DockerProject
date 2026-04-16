@@ -13,437 +13,332 @@ import {
   LifeBuoy,
   Stethoscope,
   Users,
-  Activity
+  Activity,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Nav, Button } from "react-bootstrap";
 
-export default function Sidebar() {
+export default function Sidebar({ isCollapsed, toggleSidebar }) {
   const { logout, user } = useAuth();
 
-  // Define menu items for each role
   const getMenuItems = () => {
     const role = user?.role;
-
-    // Common menu items for all roles
     const commonItems = [
-      {
-        id: "dashboard",
-        label: "Dashboard",
-        path: "/",
-        icon: <LayoutDashboard size={19} />,
-      },
-
+      { id: "dashboard", label: "Dashboard", path: "/", icon: <LayoutDashboard size={20} /> }
     ];
 
-    // Doctor-specific menu items
     const doctorItems = [
-      {
-        id: "prescriptions",
-        label: "Prescriptions",
-        path: "/prescriptions",
-        icon: <FileText size={19} />,
-      },
-      {
-        id: "profile",
-        label: "Profile",
-        path: "/profile",
-        icon: <UserCircle2 size={19} />,
-      },
-      // {
-      //   id: "appointments",
-      //   label: "Appointments",
-      //   path: "/appointments",
-      //   icon: <CalendarDays size={19} />,
-      // },
-      {
-        id: "availability",
-        label: "Availability",
-        path: "/availability",
-        icon: <Clock3 size={19} />,
-      },
-      {
-        id: "patientreport",
-        label: "Patient Report",
-        path: "/patientreport",
-        icon: <FileHeart size={19} />,
-      }
+      { id: "prescriptions", label: "Prescriptions", path: "/prescriptions", icon: <FileText size={20} /> },
+      { id: "profile", label: "Profile", path: "/profile", icon: <UserCircle2 size={20} /> },
+      { id: "availability", label: "Availability", path: "/availability", icon: <Clock3 size={20} /> },
+      { id: "patientreport", label: "Patient Report", path: "/patientreport", icon: <FileHeart size={20} /> }
     ];
 
-    // Patient-specific menu items
     const patientItems = [
-      {
-        id: "appointments",
-        label: "Appointments",
-        path: "/appointments",
-        icon: <CalendarDays size={19} />,
-      },
-      {
-        id: "symptom-checker",
-        label: "Symptom Checker",
-        path: "/symptom-checker",
-        icon: <Stethoscope size={19} />,
-      },
-      {
-        id: "prescriptions",
-        label: "My Prescriptions",
-        path: "/prescriptions",
-        icon: <FileText size={19} />,
-      }
+      { id: "appointments", label: "Appointments", path: "/appointments", icon: <CalendarDays size={20} /> },
+      { id: "symptom-checker", label: "Symptom Checker", path: "/symptom-checker", icon: <Stethoscope size={20} /> },
+      { id: "prescriptions", label: "My Prescriptions", path: "/prescriptions", icon: <FileText size={20} /> }
     ];
 
-    // Admin-specific menu items
     const adminItems = [
-      {
-        id: "admin-dashboard",
-        label: "Admin Dashboard",
-        path: "/admin/dashboard",
-        icon: <LayoutDashboard size={19} />,
-      },
-      {
-        id: "doctor-management",
-        label: "Doctor Management",
-        path: "/admin/doctor-management",
-        icon: <Stethoscope size={19} />,
-      },
-      {
-        id: "patient-management",
-        label: "Patient Management",
-        path: "/admin/patient-management",
-        icon: <Users size={19} />,
-      },
-      {
-        id: "all-appointments",
-        label: "All Appointments",
-        path: "/admin/all-appointments",
-        icon: <CalendarDays size={19} />,
-      }
+      { id: "admin-dashboard", label: "Admin Dashboard", path: "/admin/dashboard", icon: <LayoutDashboard size={20} /> },
+      { id: "doctor-management", label: "Doctor Management", path: "/admin/doctor-management", icon: <Stethoscope size={20} /> },
+      { id: "patient-management", label: "Patient Management", path: "/admin/patient-management", icon: <Users size={20} /> },
+      { id: "all-appointments", label: "All Appointments", path: "/admin/all-appointments", icon: <CalendarDays size={20} /> }
     ];
 
-    // Return menu based on role
     switch (role) {
-      case "DOCTOR":
-        return [...commonItems, ...doctorItems];
-      case "PATIENT":
-        return [...commonItems, ...patientItems];
-      case "ADMIN":
-        return [...adminItems];
-      default:
-        return commonItems;
+      case "DOCTOR": return [...commonItems, ...doctorItems];
+      case "PATIENT": return [...commonItems, ...patientItems];
+      case "ADMIN": return [...adminItems];
+      default: return commonItems;
     }
   };
-
-  // Support items (common for all roles)
-  const supportItems = [
-    {
-      id: "settings",
-      label: "Settings",
-      path: "/settings",
-      icon: <Settings size={19} />,
-    },
-    {
-      id: "help",
-      label: "Help Center",
-      path: "/help",
-      icon: <LifeBuoy size={19} />,
-    }
-  ];
 
   const menuItems = getMenuItems();
 
   return (
     <>
-      <aside className="smart-sidebar">
+      <aside className={`smart-sidebar ${isCollapsed ? 'collapsed' : ''}`}>
         <div className="smart-sidebar-top">
           <div className="smart-sidebar-brand">
-            <div>
-              <h5 className="smart-brand-title mb-0">SmartHealth</h5>
-              {user?.role && (
-                <p className="smart-brand-subtitle mb-0">
-                  {user.role.charAt(0) + user.role.slice(1).toLowerCase()} Panel
-                </p>
-              )}
+            <div className="brand-logo-circle">
+              <Activity size={24} color="white" />
             </div>
+            {!isCollapsed && (
+              <div className="brand-text animate-fade-in">
+                <h5 className="smart-brand-title mb-0">SmartHealth</h5>
+                <p className="smart-brand-subtitle mb-0">Management</p>
+              </div>
+            )}
           </div>
 
-          <div className="smart-sidebar-user">
-            <div className="smart-user-avatar">
+          {/* <div className="smart-sidebar-user">
+            <div className="smart-user-avatar shadow-sm">
               {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
             </div>
-            <div className="smart-user-info">
-              <h6 className="mb-0">{user?.fullName || "Guest User"}</h6>
-              <p className="mb-0">{user?.role || "Member"}</p>
-            </div>
-          </div>
+            {!isCollapsed && (
+              <div className="smart-user-info animate-fade-in">
+                <h6 className="mb-0 text-dark fw-bold">{user?.fullName?.split(" ")[0] || "Guest"}</h6>
+                <p className="mb-0 text-primary fw-bold text-uppercase">{user?.role?.toLowerCase() || "member"}</p>
+              </div>
+            )}
+          </div> */}
         </div>
 
-        <div className="smart-sidebar-body">
+        <div className="smart-sidebar-body mt-3">
           <div className="smart-sidebar-section">
-            <p className="smart-sidebar-section-title">
-              {user?.role === "ADMIN" ? "ADMIN MENU" : "MAIN MENU"}
-            </p>
+            {!isCollapsed && (
+              <p className="smart-sidebar-section-title px-3">
+                {user?.role === "ADMIN" ? "Administrator" : "Menu Navigation"}
+              </p>
+            )}
 
-            <Nav className="flex-column gap-1">
+            <Nav className="flex-column gap-2 px-2">
               {menuItems.map((link) => (
                 <NavLink
                   key={link.id}
                   to={link.path}
                   end={link.path === "/"}
                   className={({ isActive }) =>
-                    `smart-nav-link ${isActive ? "active" : ""}`
+                    `smart-nav-link shadow-hover ${isActive ? "active" : ""}`
                   }
+                  title={isCollapsed ? link.label : ""}
                 >
                   <span className="smart-nav-icon">{link.icon}</span>
-                  <span className="smart-nav-text">{link.label}</span>
+                  {!isCollapsed && <span className="smart-nav-text animate-fade-in">{link.label}</span>}
                 </NavLink>
               ))}
             </Nav>
           </div>
-
-          {/* Support section - show for all except maybe admin */}
-          {user?.role !== "ADMIN" && (
-            <div className="smart-sidebar-section mt-4">
-              <p className="smart-sidebar-section-title">SUPPORT</p>
-              <Nav className="flex-column gap-1">
-                {supportItems.map((link) => (
-                  <NavLink
-                    key={link.id}
-                    to={link.path}
-                    className={({ isActive }) =>
-                      `smart-nav-link ${isActive ? "active" : ""}`
-                    }
-                  >
-                    <span className="smart-nav-icon">{link.icon}</span>
-                    <span className="smart-nav-text">{link.label}</span>
-                  </NavLink>
-                ))}
-              </Nav>
-            </div>
-          )}
         </div>
 
         <div className="smart-sidebar-footer">
-          <Button
-            onClick={logout}
-            className="smart-logout-btn"
-          >
-            <LogOut size={18} />
-            <span>Sign Out</span>
-          </Button>
+          {/* <Nav className="flex-column gap-2 px-2 mb-3">
+            <NavLink to="/settings" className="smart-nav-link secondary" title={isCollapsed ? "Settings" : ""}>
+              <span className="smart-nav-icon"><Settings size={20} /></span>
+              {!isCollapsed && <span className="smart-nav-text">Settings</span>}
+            </NavLink>
+          </Nav> */}
+
+          <div className="px-2 pb-3">
+            <Button onClick={logout} className="smart-logout-btn shadow-sm" title={isCollapsed ? "Sign Out" : ""}>
+              <LogOut size={20} />
+              {!isCollapsed && <span className="ms-2">Logout</span>}
+            </Button>
+          </div>
+
+          {/* Sidebar Expand/Collapse Toggle at the bottom
+          <button className="sidebar-bottom-toggle" onClick={toggleSidebar}>
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button> */}
         </div>
       </aside>
 
       <style>{`
         .smart-sidebar {
-          width: 280px;
+          width: var(--sidebar-width);
           height: 100vh;
           position: fixed;
           top: 0;
           left: 0;
-          z-index: 1000;
+          z-index: 1001;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-          background:
-            linear-gradient(180deg, rgba(24, 28, 38, 0.98) 0%, rgba(14, 17, 24, 0.98) 100%);
-          border-right: 1px solid rgba(255, 255, 255, 0.08);
-          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
-          backdrop-filter: blur(14px);
-          color: #fff;
+          background: #000e2e;
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
+          transition: var(--transition);
           overflow: hidden;
+          color: white;
+        }
+
+        .smart-sidebar.collapsed {
+          width: var(--sidebar-collapsed-width);
         }
 
         .smart-sidebar-top {
-          padding: 1.25rem 1rem 1rem;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-          background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+          padding: 1.25rem 1rem;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .smart-sidebar-brand {
           display: flex;
           align-items: center;
-          gap: 0.9rem;
-          margin-bottom: 1.25rem;
+          gap: 0.75rem;
+          margin-bottom: 1.5rem;
+          padding-left: 0.5rem;
         }
 
-        .smart-brand-icon {
-          width: 46px;
-          height: 46px;
-          border-radius: 14px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #2563eb, #3b82f6);
-          color: #fff;
-          box-shadow: 0 12px 24px rgba(37, 99, 235, 0.35);
-          flex-shrink: 0;
+        .brand-logo-circle {
+           width: 38px;
+           height: 38px;
+           background: linear-gradient(135deg, #2563eb, #1e40af);
+           border-radius: 10px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           flex-shrink: 0;
+           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
         .smart-brand-title {
-          font-size: 1rem;
-          font-weight: 700;
-          color: #ffffff;
-          letter-spacing: 0.2px;
+          font-size: 1.1rem;
+          font-weight: 800;
+          color: white;
+          letter-spacing: -0.02em;
         }
 
         .smart-brand-subtitle {
-          font-size: 0.78rem;
-          color: rgba(255, 255, 255, 0.55);
-          margin-top: 2px;
+          font-size: 0.65rem;
+          color: #93c5fd;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          font-weight: 700;
         }
 
         .smart-sidebar-user {
           display: flex;
           align-items: center;
-          gap: 0.85rem;
-          padding: 0.8rem;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.06);
+          gap: 0.75rem;
+          padding: 0.65rem;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .smart-user-avatar {
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
+          width: 34px;
+          height: 34px;
+          border-radius: 8px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, rgba(59,130,246,0.22), rgba(37,99,235,0.35));
-          color: #93c5fd;
-          font-weight: 700;
-          font-size: 1rem;
-          flex-shrink: 0;
-          border: 1px solid rgba(147, 197, 253, 0.18);
-        }
-
-        .smart-user-info h6 {
+          background: #2563eb;
           color: #fff;
-          font-size: 0.92rem;
-          font-weight: 600;
+          font-weight: 700;
+          font-size: 0.8rem;
+          flex-shrink: 0;
         }
 
         .smart-user-info p {
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 0.76rem;
-          margin-top: 2px;
-          text-transform: capitalize;
+          font-size: 0.65rem;
+          letter-spacing: 0.5px;
+          margin-top: 1px;
+          color: #93c5fd;
         }
 
         .smart-sidebar-body {
           flex: 1;
           overflow-y: auto;
-          padding: 1rem;
-        }
-
-        .smart-sidebar-body::-webkit-scrollbar {
-          width: 6px;
-        }
-
-        .smart-sidebar-body::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.12);
-          border-radius: 999px;
+          overflow-x: hidden;
+          padding-top: 1rem;
         }
 
         .smart-sidebar-section-title {
-          font-size: 0.72rem;
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.42);
-          letter-spacing: 1.1px;
-          margin-bottom: 0.9rem;
-          padding-left: 0.35rem;
+          font-size: 0.65rem;
+          font-weight: 800;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin-bottom: 0.75rem;
         }
 
         .smart-nav-link {
           display: flex;
           align-items: center;
           gap: 0.85rem;
-          padding: 0.82rem 0.95rem;
-          border-radius: 14px;
-          color: rgba(255, 255, 255, 0.82);
-          text-decoration: none;
-          transition: all 0.25s ease;
-          position: relative;
-          border: 1px solid transparent;
+          padding: 0.7rem 1rem;
+          border-radius: 10px;
+          color: #94a3b8;
+          text-decoration: none !important;
+          transition: all 0.2s;
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+
+        .collapsed .smart-nav-link {
+           justify-content: center;
+           padding: 0.7rem;
         }
 
         .smart-nav-link:hover {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.07);
-          transform: translateX(2px);
+          color: white;
+          background: rgba(255, 255, 255, 0.05);
+          transform: translateX(4px);
         }
 
         .smart-nav-link.active {
-          background: linear-gradient(90deg, rgba(37, 99, 235, 0.22), rgba(59, 130, 246, 0.10));
+          background: #2563eb;
           color: #ffffff;
-          border-color: rgba(59, 130, 246, 0.24);
-          box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
-        }
-
-        .smart-nav-link.active::before {
-          content: "";
-          position: absolute;
-          left: -1rem;
-          top: 10px;
-          bottom: 10px;
-          width: 4px;
-          border-radius: 999px;
-          background: #3b82f6;
-          box-shadow: 0 0 18px rgba(59, 130, 246, 0.5);
-        }
-
-        .smart-nav-icon {
-          width: 38px;
-          height: 38px;
-          min-width: 38px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(255, 255, 255, 0.04);
-          color: inherit;
-          transition: all 0.25s ease;
-        }
-
-        .smart-nav-link:hover .smart-nav-icon,
-        .smart-nav-link.active .smart-nav-icon {
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .smart-nav-text {
-          font-size: 0.93rem;
-          font-weight: 500;
-          white-space: nowrap;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
         .smart-sidebar-footer {
           padding: 1rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          background: rgba(255, 255, 255, 0.02);
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .smart-logout-btn {
           width: 100%;
           display: flex;
           align-items: center;
-          justify-content: flex-start;
-          gap: 0.7rem;
-          padding: 0.85rem 0.95rem;
-          border-radius: 14px;
-          background: rgba(239, 68, 68, 0.08) !important;
-          border: 1px solid rgba(239, 68, 68, 0.18) !important;
+          justify-content: center;
+          padding: 0.65rem;
+          border-radius: 10px;
+          background: rgba(229, 62, 62, 0.1) !important;
+          border: 1px solid rgba(229, 62, 62, 0.2) !important;
           color: #fca5a5 !important;
-          box-shadow: none !important;
-          transition: all 0.25s ease;
+          font-weight: 700 !important;
+          font-size: 0.85rem !important;
         }
 
-        .smart-logout-btn:hover,
-        .smart-logout-btn:focus,
-        .smart-logout-btn:active {
-          background: rgba(239, 68, 68, 0.14) !important;
-          border-color: rgba(239, 68, 68, 0.3) !important;
-          color: #fecaca !important;
+        .smart-logout-btn:hover {
+          background: rgba(229, 62, 62, 0.2) !important;
           transform: translateY(-1px);
+        }
+
+        .sidebar-bottom-toggle {
+           position: absolute;
+           top: -16px;
+           right: -8px;
+           width: 32px;
+           height: 32px;
+           background: #ffffff;
+           border: 1px solid #e2e8f0;
+           border-radius: 50%;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           color: #64748b;
+           cursor: pointer;
+           box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+           z-index: 10;
+           transition: all 0.2s;
+        }
+
+        .sidebar-bottom-toggle:hover {
+           background: #2563eb;
+           color: white;
+           border-color: #2563eb;
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateX(-10px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 991.98px) {
+          .smart-sidebar {
+            transform: translateX(-100%);
+          }
+          .smart-sidebar.active {
+            transform: translateX(0);
+          }
         }
       `}</style>
     </>

@@ -46,16 +46,16 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="admin-dashboard">
-      <div className="d-flex justify-content-between align-items-center mb-4">
+    <div className="admin-dashboard container-fluid p-4">
+      <div className="d-flex justify-content-between align-items-center mb-5">
         <div>
-          <h2 className="fw-bold mb-1">Admin Control Center</h2>
-          <p className="text-white-50">Monitor system performance and manage healthcare entities</p>
+          <h1 className="fw-bold text-dark mb-1">Admin Control Center</h1>
+          <p className="text-muted mb-0">Monitor system performance and manage healthcare entities</p>
         </div>
         <div className="d-flex gap-2">
-          <button className="btn-glass">
-            <TrendingUp size={18} className="me-2" />
-            Generate Report
+          <button className="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 rounded-pill shadow-sm">
+            <TrendingUp size={18} />
+            <span>Generate Report</span>
           </button>
         </div>
       </div>
@@ -64,16 +64,21 @@ export default function AdminDashboard() {
       <div className="row g-4 mb-5">
         {stats.map((stat, idx) => (
           <div key={idx} className="col-md-3">
-            <div className={`stat-card ${stat.color}`}>
-              <div className="stat-icon">{stat.icon}</div>
-              <div className="stat-content">
-                <p className="stat-label mb-0">{stat.label}</p>
-                <div className="d-flex align-items-baseline gap-2">
-                  <h3 className="stat-value mb-0">{stat.value}</h3>
-                  <span className="stat-trend">{stat.trend}</span>
+            <div className={`stat-card-new p-4 rounded-4 shadow-sm h-100 ${stat.color}`}>
+              <div className="d-flex justify-content-between align-items-start mb-3">
+                <div className="stat-icon-wrapper rounded-3">
+                  {stat.icon}
                 </div>
+                <span className="trend-badge d-flex align-items-center gap-1">
+                  <ArrowUpRight size={14} />
+                  {stat.trend}
+                </span>
               </div>
-              <div className="stat-decoration"></div>
+              <p className="text-muted small fw-600 mb-1">{stat.label}</p>
+              <h2 className="fw-bold mb-0 text-dark">{stat.value}</h2>
+              <div className="stat-progress mt-3">
+                <div className="progress-bar rounded-pill" style={{ width: '70%' }}></div>
+              </div>
             </div>
           </div>
         ))}
@@ -82,22 +87,28 @@ export default function AdminDashboard() {
       <div className="row g-4">
         {/* Quick Management */}
         <div className="col-lg-8">
-          <div className="glass-panel h-100">
-            <div className="panel-header mb-4">
-              <h5 className="mb-0">System Overview</h5>
-              <p className="text-white-50 small mb-0">Platform performance over the last 30 days</p>
+          <div className="card-custom h-100">
+            <div className="card-header-custom d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h5 className="fw-bold mb-0">System Overview</h5>
+                <p className="text-muted small mb-0">Platform performance over the last 30 days</p>
+              </div>
+              <div className="dropdown">
+                <button className="btn btn-light btn-sm rounded-3 border">Last 30 Days</button>
+              </div>
             </div>
 
-            <div className="overview-chart-placeholder">
-              {/* Complex decoration to look like a chart */}
-              <div className="mock-chart">
+            <div className="overview-chart-container mt-4">
+              <div className="mock-chart-new">
                 {[40, 70, 45, 90, 65, 85, 50, 75].map((h, i) => (
-                  <div key={i} className="chart-bar" style={{ height: `${h}%` }}>
-                    <div className="bar-tooltip">{h}%</div>
+                  <div key={i} className="chart-bar-wrapper">
+                    <div className="chart-bar-new" style={{ height: `${h}%` }}>
+                      <div className="bar-tooltip-new">{h}%</div>
+                    </div>
                   </div>
                 ))}
               </div>
-              <div className="chart-labels">
+              <div className="chart-labels-new mt-3">
                 <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
               </div>
             </div>
@@ -106,25 +117,25 @@ export default function AdminDashboard() {
 
         {/* Recent Activity */}
         <div className="col-lg-4">
-          <div className="glass-panel h-100">
-            <div className="panel-header mb-4">
-              <h5 className="mb-0">Recent Activity</h5>
+          <div className="card-custom h-100">
+            <div className="card-header-custom mb-4">
+              <h5 className="fw-bold mb-0">Recent Activity</h5>
             </div>
 
-            <div className="activity-list">
+            <div className="activity-feed">
               {recentActivities.map((activity, idx) => (
-                <div key={idx} className="activity-item">
-                  <div className={`activity-bullet ${activity.type}`}></div>
-                  <div className="activity-content">
-                    <p className="activity-msg mb-0">{activity.message}</p>
-                    <span className="activity-time">{activity.time}</span>
+                <div key={idx} className="activity-card-new mb-3">
+                  <div className={`activity-indicator ${activity.type}`}></div>
+                  <div className="activity-info ms-3">
+                    <p className="activity-text text-dark fw-500 mb-0">{activity.message}</p>
+                    <span className="activity-timestamp text-muted small">{activity.time}</span>
                   </div>
-                  <ChevronRight size={14} className="activity-arrow" />
+                  <ChevronRight size={16} className="text-muted ms-auto" />
                 </div>
               ))}
             </div>
 
-            <button className="btn-outline-glass w-100 mt-4">
+            <button className="btn btn-outline-primary w-100 mt-3 rounded-3 py-2 border-dashed">
               View All Activity
             </button>
           </div>
@@ -133,207 +144,156 @@ export default function AdminDashboard() {
 
       <style>{`
         .admin-dashboard {
-          animation: fadeIn 0.8s ease-out;
+          background-color: var(--bg-main);
+          min-height: 100vh;
         }
 
-        .btn-glass {
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          color: #fff;
-          padding: 0.6rem 1.25rem;
-          border-radius: 12px;
-          backdrop-filter: blur(8px);
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-        }
-
-        .btn-glass:hover {
-          background: rgba(255, 255, 255, 0.15);
-          transform: translateY(-2px);
-          box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .stat-card {
-          padding: 1.5rem;
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
+        .stat-card-new {
+          background: white;
+          border: 1px solid rgba(0,0,0,0.05);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
           overflow: hidden;
-          transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .stat-card:hover {
+        .stat-card-new:hover {
           transform: translateY(-5px);
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.15);
+          box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important;
         }
 
-        .stat-icon {
-          width: 50px;
-          height: 50px;
-          border-radius: 14px;
+        .stat-icon-wrapper {
+          width: 48px;
+          height: 48px;
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-bottom: 1.25rem;
-          background: rgba(255, 255, 255, 0.05);
+          background: #f8fafc;
         }
 
-        .blue .stat-icon { color: #60a5fa; background: rgba(59, 130, 246, 0.15); }
-        .purple .stat-icon { color: #a78bfa; background: rgba(139, 92, 246, 0.15); }
-        .emerald .stat-icon { color: #34d399; background: rgba(16, 185, 129, 0.15); }
-        .orange .stat-icon { color: #fb923c; background: rgba(249, 115, 22, 0.15); }
+        .blue .stat-icon-wrapper { color: #3b82f6; background: #eff6ff; }
+        .purple .stat-icon-wrapper { color: #8b5cf6; background: #f5f3ff; }
+        .emerald .stat-icon-wrapper { color: #10b981; background: #ecfdf5; }
+        .orange .stat-icon-wrapper { color: #f59e0b; background: #fffbeb; }
 
-        .stat-label {
-          font-size: 0.85rem;
-          color: rgba(255, 255, 255, 0.5);
-          font-weight: 500;
-        }
-
-        .stat-value {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: #fff;
-        }
-
-        .stat-trend {
-          font-size: 0.8rem;
+        .trend-badge {
+          font-size: 0.75rem;
           font-weight: 600;
-          color: #34d399;
-          padding: 2px 8px;
+          color: #10b981;
+          padding: 4px 8px;
+          background: #ecfdf5;
           border-radius: 20px;
-          background: rgba(52, 211, 153, 0.1);
         }
 
-        .glass-panel {
-          background: rgba(255, 255, 255, 0.03);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 24px;
+        .stat-progress {
+          height: 4px;
+          background: #f1f5f9;
+          width: 100%;
+          border-radius: 10px;
+        }
+
+        .blue .progress-bar { background: #3b82f6; }
+        .purple .progress-bar { background: #8b5cf6; }
+        .emerald .progress-bar { background: #10b981; }
+        .orange .progress-bar { background: #f59e0b; }
+
+        .card-custom {
+          background: white;
+          border: 1px solid rgba(0,0,0,0.05);
           padding: 1.75rem;
-          backdrop-filter: blur(12px);
+          border-radius: 24px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
         }
 
-        .overview-chart-placeholder {
-          height: 300px;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-end;
-          padding-top: 2rem;
-        }
-
-        .mock-chart {
+        .mock-chart-new {
           display: flex;
           align-items: flex-end;
           justify-content: space-around;
-          height: 200px;
-          gap: 10px;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
+          height: 240px;
+          gap: 12px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #f1f5f9;
         }
 
-        .chart-bar {
+        .chart-bar-wrapper {
+          flex: 1;
+          height: 100%;
+          display: flex;
+          align-items: flex-end;
+        }
+
+        .chart-bar-new {
           width: 100%;
-          background: linear-gradient(180deg, #3b82f6 0%, rgba(59, 130, 246, 0.2) 100%);
-          border-radius: 8px 8px 0 0;
+          background: linear-gradient(180deg, #3b82f6 0%, #93c5fd 100%);
+          border-radius: 12px 12px 4px 4px;
           position: relative;
-          transition: all 0.3s ease;
-        }
-
-        .chart-bar:hover {
-          filter: brightness(1.2);
-        }
-
-        .bar-tooltip {
-          position: absolute;
-          top: -30px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: #fff;
-          color: #000;
-          padding: 2px 8px;
-          border-radius: 6px;
-          font-size: 0.7rem;
-          font-weight: 700;
-          opacity: 0;
-          transition: opacity 0.2s;
-        }
-
-        .chart-bar:hover .bar-tooltip {
-          opacity: 1;
-        }
-
-        .chart-labels {
-          display: flex;
-          justify-content: space-around;
-          margin-top: 1rem;
-          font-size: 0.8rem;
-          color: rgba(255,255,255,0.4);
-        }
-
-        .activity-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-
-        .activity-item {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-          padding: 1rem;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.02);
-          transition: all 0.2s ease;
+          transition: all 0.4s ease;
           cursor: pointer;
         }
 
-        .activity-item:hover {
-          background: rgba(255, 255, 255, 0.05);
-          transform: translateX(5px);
+        .chart-bar-new:hover {
+          filter: brightness(1.1);
+          transform: scaleX(1.1);
         }
 
-        .activity-bullet {
+        .bar-tooltip-new {
+          position: absolute;
+          top: -35px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #1e293b;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 8px;
+          font-size: 0.7rem;
+          font-weight: 600;
+          opacity: 0;
+          transition: 0.3s;
+          pointer-events: none;
+        }
+
+        .chart-bar-new:hover .bar-tooltip-new {
+          opacity: 1;
+          top: -45px;
+        }
+
+        .chart-labels-new {
+          display: flex;
+          justify-content: space-around;
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .activity-card-new {
+          display: flex;
+          align-items: center;
+          padding: 1rem;
+          background: #f8fafc;
+          border-radius: 16px;
+          transition: 0.2s;
+          border: 1px solid transparent;
+        }
+
+        .activity-card-new:hover {
+          background: white;
+          border-color: #e2e8f0;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .activity-indicator {
           width: 8px;
           height: 8px;
           border-radius: 50%;
           flex-shrink: 0;
         }
 
-        .activity-bullet.doctor { background: #a78bfa; box-shadow: 0 0 8px #a78bfa; }
-        .activity-bullet.appointment { background: #60a5fa; box-shadow: 0 0 8px #60a5fa; }
-        .activity-bullet.patient { background: #34d399; box-shadow: 0 0 8px #34d399; }
+        .activity-indicator.doctor { background: #8b5cf6; }
+        .activity-indicator.appointment { background: #3b82f6; }
+        .activity-indicator.patient { background: #10b981; }
 
-        .activity-msg {
-          font-size: 0.9rem;
-          color: #fff;
-        }
-
-        .activity-time {
-          font-size: 0.75rem;
-          color: rgba(255,255,255,0.4);
-        }
-
-        .activity-arrow {
-          margin-left: auto;
-          color: rgba(255,255,255,0.2);
-        }
-
-        .btn-outline-glass {
-          background: transparent;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.7);
-          padding: 0.6rem;
-          border-radius: 12px;
-          transition: all 0.2s;
-        }
-
-        .btn-outline-glass:hover {
-          border-color: rgba(255, 255, 255, 0.2);
-          background: rgba(255, 255, 255, 0.03);
-          color: #fff;
-        }
+        .fw-500 { font-weight: 500; }
+        .fw-600 { font-weight: 600; }
+        .border-dashed { border-style: dashed !important; border-width: 2px !important; }
 
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
