@@ -3,10 +3,12 @@ import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "./Sidebar";
 import { HeartPulse, Bell, User, Search, ChevronRight, Menu } from "lucide-react";
+import ProfileModal from "./profile/ProfileModal";
 
 export default function Layout() {
   const { user, isAuthenticated } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
@@ -50,7 +52,10 @@ export default function Layout() {
                 <input type="text" placeholder="Search records..." />
               </div>
 
-              <div className="smart-profile-chip shadow-sm">
+              <div 
+                className="smart-profile-chip shadow-sm"
+                onClick={() => setShowProfileModal(true)}
+              >
                 <div className="smart-profile-text">
                   <p className="smart-profile-name mb-0">
                     {user?.fullName || "Guest User"}
@@ -74,6 +79,12 @@ export default function Layout() {
           </main>
         </div>
       </div>
+
+      <ProfileModal 
+        show={showProfileModal} 
+        onHide={() => setShowProfileModal(false)} 
+        user={user} 
+      />
 
       <style>{`
         :root {
