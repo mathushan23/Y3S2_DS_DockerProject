@@ -56,16 +56,16 @@ public class AppointmentService {
         log.info("Creating new appointment: {}", request);
 
         // Set default values if not provided
-        if (request.getStatus() == null) {
+        if (!hasText(request.getStatus())) {
             request.setStatus("PENDING");
         }
-        if (request.getLocation() == null) {
+        if (!hasText(request.getLocation())) {
             request.setLocation("Main Clinic");
         }
-        if (request.getBillingStatus() == null) {
+        if (!hasText(request.getBillingStatus())) {
             request.setBillingStatus("PENDING");
         }
-        if (request.getFee() <= 0) {
+        if (request.getFee() == null || request.getFee() <= 0) {
             request.setFee(100.0);
         }
 
@@ -83,6 +83,8 @@ public class AppointmentService {
                 .notes(request.getNotes())
                 .billingStatus(request.getBillingStatus())
                 .fee(request.getFee())
+                .reason(request.getReason())
+                .symptoms(request.getSymptoms())
                 .build();
 
         Appointment saved = appointmentRepository.save(appointment);
@@ -107,8 +109,10 @@ public class AppointmentService {
         appointment.setPatientPhone(request.getPatientPhone());
         appointment.setLocation(request.getLocation());
         appointment.setNotes(request.getNotes());
-        appointment.setBillingStatus(request.getBillingStatus());
-        appointment.setFee(request.getFee());
+        appointment.setBillingStatus(hasText(request.getBillingStatus()) ? request.getBillingStatus() : appointment.getBillingStatus());
+        appointment.setFee((request.getFee() == null || request.getFee() <= 0) ? appointment.getFee() : request.getFee());
+        appointment.setReason(request.getReason());
+        appointment.setSymptoms(request.getSymptoms());
 
         Appointment updated = appointmentRepository.save(appointment);
         log.info("Updated appointment with id: {}", id);
@@ -140,6 +144,12 @@ public class AppointmentService {
                 .notes(appointment.getNotes())
                 .billingStatus(appointment.getBillingStatus())
                 .fee(appointment.getFee())
+                .reason(appointment.getReason())
+                .symptoms(appointment.getSymptoms())
                 .build();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 }
