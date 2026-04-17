@@ -1,723 +1,572 @@
 import React, { useState, useEffect } from "react";
 import {
-  Container, Row, Col, Card, Button, Table, Badge,
-  Alert, Spinner, ProgressBar, Tabs, Tab,
-  ListGroup, Dropdown, ButtonGroup
-} from 'react-bootstrap';
-import {
-  Calendar, Clock, Users, Video, FileText, CheckCircle,
-  XCircle, Activity, Heart, DollarSign, TrendingUp,
-  UserCheck, UserX, Phone, Mail, MapPin, Award,
-  Briefcase, Star, MessageCircle, Bell, Settings,
-  ChevronRight, Download, Printer, RefreshCw
-} from 'lucide-react';
+  HeartPulse,
+  Calendar,
+  Clock,
+  Users,
+  Video,
+  FileText,
+  CheckCircle,
+  XCircle,
+  Activity,
+  TrendingUp,
+  Award,
+  Star,
+  Bell,
+  ChevronRight,
+  Loader2,
+  Stethoscope,
+  Plus,
+  ArrowRight,
+  DollarSign,
+  TrendingUp as TrendingIcon,
+  Search,
+  Filter,
+  UserCheck,
+  UserMinus
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import api from "../../api";
 
-const DoctorDashboard = () => {
+export default function DoctorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState([]);
   const [stats, setStats] = useState({
-    totalPatients: 0,
-    todayAppointments: 0,
-    pendingRequests: 0,
-    completedAppointments: 0,
-    totalRevenue: 0,
+    totalPatients: 1247,
+    todayAppointments: 8,
+    pendingRequests: 3,
     satisfactionRate: 98,
-    upcomingTelemedicine: 0,
-    pendingPrescriptions: 0
+    revenue: 12500
   });
 
-  const [todayAppointments, setTodayAppointments] = useState([]);
-  const [recentPatients, setRecentPatients] = useState([]);
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [upcomingSchedule, setUpcomingSchedule] = useState([]);
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [topMedicines, setTopMedicines] = useState([]);
-
-  // Get the doctor's name from user context
-  const getDoctorName = () => {
-    if (user?.fullName) {
-      return user.fullName;
-    }
-    if (user?.name) {
-      return user.name;
-    }
-    return "Doctor";
-  };
-
-  // Get doctor's specialty from user context or default
-  const getDoctorSpecialty = () => {
-    if (user?.specialty) {
-      return user.specialty;
-    }
-    if (user?.specialization) {
-      return user.specialization;
-    }
-    return "Medical Professional";
-  };
-
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        // Fetch appointments for this doctor
+        if (user?.id) {
+          const data = await api.get(`/api/appointments?doctorId=${user.id}`);
+          setAppointments(data);
 
-  const loadDashboardData = () => {
-    setLoading(true);
+          // Filter today's appointments
+          const today = new Date().toISOString().split('T')[0];
+          const todayAppts = data.filter(a => a.appointmentDateTime?.startsWith(today));
 
-    // Load data from localStorage or use mock data
-    const storedAppointments = localStorage.getItem('appointments');
-    const storedPatients = localStorage.getItem('patients');
-    const storedPrescriptions = localStorage.getItem('prescriptions');
-    const storedTelemedicine = localStorage.getItem('telemedicineRequests');
-
-    // Mock dashboard data (replace with API calls)
-    const mockStats = {
-      totalPatients: 1247,
-      todayAppointments: 8,
-      pendingRequests: 3,
-      completedAppointments: 1247,
-      totalRevenue: 18750,
-      satisfactionRate: 98,
-      upcomingTelemedicine: 4,
-      pendingPrescriptions: 12
+          setStats(prev => ({
+            ...prev,
+            todayAppointments: todayAppts.length,
+            pendingRequests: data.filter(a => a.status === 'PENDING').length
+          }));
+        }
+      } catch (err) {
+        console.error("Error fetching doctor dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const mockTodayAppointments = [
-      {
-        id: 1,
-        patientName: "John Doe",
-        time: "09:00 AM",
-        type: "In-person",
-        status: "confirmed",
-        avatar: "JD"
-      },
-      {
-        id: 2,
-        patientName: "Jane Smith",
-        time: "10:30 AM",
-        type: "Telemedicine",
-        status: "confirmed",
-        avatar: "JS"
-      },
-      {
-        id: 3,
-        patientName: "Robert Johnson",
-        time: "01:00 PM",
-        type: "In-person",
-        status: "pending",
-        avatar: "RJ"
-      },
-      {
-        id: 4,
-        patientName: "Emily Davis",
-        time: "02:30 PM",
-        type: "Follow-up",
-        status: "confirmed",
-        avatar: "ED"
-      },
-      {
-        id: 5,
-        patientName: "Michael Brown",
-        time: "04:00 PM",
-        type: "Telemedicine",
-        status: "confirmed",
-        avatar: "MB"
-      }
-    ];
+    if (user) fetchDashboardData();
+  }, [user]);
 
-    const mockRecentPatients = [
-      {
-        id: 1,
-        name: "John Doe",
-        lastVisit: "2024-03-15",
-        condition: "Hypertension",
-        nextAppointment: "2024-04-15",
-        status: "active"
-      },
-      {
-        id: 2,
-        name: "Jane Smith",
-        lastVisit: "2024-03-14",
-        condition: "Asthma",
-        nextAppointment: "2024-04-14",
-        status: "active"
-      },
-      {
-        id: 3,
-        name: "Robert Johnson",
-        lastVisit: "2024-03-12",
-        condition: "Diabetes",
-        nextAppointment: "2024-04-12",
-        status: "follow-up"
-      },
-      {
-        id: 4,
-        name: "Emily Davis",
-        lastVisit: "2024-03-10",
-        condition: "Migraine",
-        nextAppointment: "2024-04-10",
-        status: "active"
-      }
-    ];
+  const summaryCards = [
+    { label: "Total Patients", value: stats.totalPatients, icon: <Users size={24} />, color: "#3b82f6", trend: "+12%" },
+    { label: "Today's Visits", value: stats.todayAppointments, icon: <Calendar size={24} />, color: "#10b981", trend: "+5%" },
+    { label: "Satisfaction", value: `${stats.satisfactionRate}%`, icon: <Star size={24} />, color: "#f59e0b", trend: "Top 5%" },
+    { label: "Monthly Revenue", value: `$${stats.revenue.toLocaleString()}`, icon: <DollarSign size={24} />, color: "#8b5cf6", trend: "+18%" },
+  ];
 
-    const mockPendingRequests = [
-      {
-        id: 1,
-        patientName: "Sarah Wilson",
-        type: "Telemedicine",
-        requestedDate: "2024-03-20",
-        requestedTime: "11:00 AM",
-        reason: "Headache and dizziness"
-      },
-      {
-        id: 2,
-        patientName: "David Lee",
-        type: "In-person",
-        requestedDate: "2024-03-20",
-        requestedTime: "02:00 PM",
-        reason: "Chest pain"
-      },
-      {
-        id: 3,
-        patientName: "Maria Garcia",
-        type: "Telemedicine",
-        requestedDate: "2024-03-21",
-        requestedTime: "09:30 AM",
-        reason: "Follow-up consultation"
-      }
-    ];
-
-    const mockUpcomingSchedule = [
-      {
-        id: 1,
-        date: "2024-03-20",
-        day: "Tomorrow",
-        appointments: 6,
-        telemedicine: 2
-      },
-      {
-        id: 2,
-        date: "2024-03-21",
-        day: "Wednesday",
-        appointments: 8,
-        telemedicine: 3
-      },
-      {
-        id: 3,
-        date: "2024-03-22",
-        day: "Thursday",
-        appointments: 5,
-        telemedicine: 1
-      }
-    ];
-
-    const mockRecentActivities = [
-      {
-        id: 1,
-        action: "Prescription issued",
-        patient: "John Doe",
-        time: "10 minutes ago",
-        type: "prescription"
-      },
-      {
-        id: 2,
-        action: "Appointment completed",
-        patient: "Jane Smith",
-        time: "1 hour ago",
-        type: "appointment"
-      },
-      {
-        id: 3,
-        action: "Lab report reviewed",
-        patient: "Robert Johnson",
-        time: "3 hours ago",
-        type: "report"
-      },
-      {
-        id: 4,
-        action: "Telemedicine session",
-        patient: "Emily Davis",
-        time: "5 hours ago",
-        type: "telemedicine"
-      }
-    ];
-
-    const mockTopMedicines = [
-      { name: "Lisinopril", count: 45, percentage: 28 },
-      { name: "Metformin", count: 38, percentage: 24 },
-      { name: "Atorvastatin", count: 32, percentage: 20 },
-      { name: "Amoxicillin", count: 25, percentage: 16 },
-      { name: "Albuterol", count: 20, percentage: 12 }
-    ];
-
-    setStats(mockStats);
-    setTodayAppointments(mockTodayAppointments);
-    setRecentPatients(mockRecentPatients);
-    setPendingRequests(mockPendingRequests);
-    setUpcomingSchedule(mockUpcomingSchedule);
-    setRecentActivities(mockRecentActivities);
-    setTopMedicines(mockTopMedicines);
-
-    setLoading(false);
-  };
-
-  const getStatusBadge = (status) => {
-    switch(status) {
-      case 'confirmed':
-        return <Badge bg="success">Confirmed</Badge>;
-      case 'pending':
-        return <Badge bg="warning">Pending</Badge>;
-      case 'completed':
-        return <Badge bg="info">Completed</Badge>;
-      default:
-        return <Badge bg="secondary">{status}</Badge>;
+  const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMED': return 'status-confirmed';
+      case 'PENDING': return 'status-pending';
+      case 'CANCELLED': return 'status-cancelled';
+      case 'COMPLETED': return 'status-completed';
+      default: return '';
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+  return (
+    <div className="doctor-dashboard-premium animate-fade-in">
+      {/* Dynamic Header */}
+      <header className="dashboard-header mb-5">
+        <div className="row align-items-center">
+          <div className="col-md-8">
+            <div className="badge-status mb-2">
+              <Activity size={14} className="me-2 text-primary" />
+              System Status: Functional
+            </div>
+            <h1 className="fw-bold h1 text-slate-900">
+              Welcome Back, <span className="text-primary">Dr. {user?.fullName?.split(" ")[1] || user?.fullName || "Physician"}</span>
+            </h1>
+            <p className="text-slate-500 mb-0">You have {stats.todayAppointments} consultations scheduled for today's session.</p>
+          </div>
+          <div className="col-md-4 text-md-end mt-3 mt-md-0">
+            <div className="action-buttons-group">
+              {/* <button className="btn-icon-light"><Bell size={20} /></button> */}
+              <button className="btn-primary-premium" onClick={() => navigate('/availability')}>
+                <Plus size={18} className="me-2" />
+                Manage Schedule
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-  const QuickActionCard = ({ icon, title, count, color, link }) => (
-      <Col lg={3} md={6} className="mb-3">
-        <Card
-            className="shadow-sm border-0 h-100 cursor-pointer"
-            style={{ cursor: 'pointer' }}
-            onClick={() => navigate(link)}
-        >
-          <Card.Body>
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h6 className="text-muted mb-1">{title}</h6>
-                <h3 className="mb-0 fw-bold">{count}</h3>
+      {/* Stats Grid */}
+      <div className="row g-4 mb-5">
+        {summaryCards.map((card, i) => (
+          <div key={i} className="col-sm-6 col-xl-3">
+            <div className="stat-card-premium">
+              <div className="d-flex justify-content-between mb-3">
+                <div className="card-icon" style={{ backgroundColor: `${card.color}10`, color: card.color }}>
+                  {card.icon}
+                </div>
+                <div className="trend-badge positive">
+                  <TrendingIcon size={12} className="me-1" />
+                  {card.trend}
+                </div>
               </div>
-              <div className={`bg-${color} bg-opacity-10 rounded p-3`}>
-                {icon}
+              <h3 className="fw-bold mb-0 text-slate-900">{card.value}</h3>
+              <p className="text-slate-500 small mb-0">{card.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="row g-4">
+        {/* Main Schedule Panel */}
+        <div className="col-lg-8">
+          <div className="content-panel-premium h-100">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <h4 className="fw-bold mb-1 text-slate-900">Today's Appointment Queue</h4>
+                <p className="text-slate-500 tiny">Managing real-time patient flow</p>
+              </div>
+              <div className="btn-group-premium">
+                <button className="active">All</button>
+                <button>Telemedicine</button>
+                <button>In-Clinic</button>
               </div>
             </div>
-          </Card.Body>
-        </Card>
-      </Col>
-  );
 
-  if (loading) {
-    return (
-        <Container fluid className="py-5 text-center">
-          <Spinner animation="border" variant="primary" />
-          <p className="mt-3">Loading dashboard...</p>
-        </Container>
-    );
-  }
-
-  return (
-      <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-        {/* Welcome Section */}
-        <Row className="mb-4">
-          <Col>
-            <Card className="shadow-sm border-0 bg-primary text-white">
-              <Card.Body className="p-4">
-                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                  <div>
-                    <h2 className="mb-1 fw-bold">
-                      Welcome back, Dr. {getDoctorName()}! 👋
-                    </h2>
-                    <p className="mb-0 opacity-75">
-                      {getDoctorSpecialty()} • Here's your practice overview for today.
-                      You have {stats.todayAppointments} appointments scheduled.
-                    </p>
-                    {user?.email && (
-                        <small className="opacity-50 mt-1 d-block">
-                          {user.email}
-                        </small>
-                    )}
-                  </div>
-                  <Button variant="light" onClick={() => navigate('/appointments')}>
-                    <Calendar size={18} className="me-2" />
-                    View Schedule
-                  </Button>
+            <div className="table-responsive-custom">
+              {loading ? (
+                <div className="d-flex justify-content-center py-5">
+                  <Loader2 className="animate-spin text-primary" size={32} />
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Statistics Cards */}
-        <Row className="mb-4">
-          <QuickActionCard
-              icon={<Users size={24} className="text-primary" />}
-              title="Total Patients"
-              count={stats.totalPatients}
-              color="primary"
-              link="/patient-report"
-          />
-          <QuickActionCard
-              icon={<Calendar size={24} className="text-success" />}
-              title="Today's Appointments"
-              count={stats.todayAppointments}
-              color="success"
-              link="/appointments"
-          />
-          <QuickActionCard
-              icon={<Video size={24} className="text-info" />}
-              title="Telemedicine"
-              count={stats.upcomingTelemedicine}
-              color="info"
-              link="/telemedicine"
-          />
-          <QuickActionCard
-              icon={<FileText size={24} className="text-warning" />}
-              title="Pending Prescriptions"
-              count={stats.pendingPrescriptions}
-              color="warning"
-              link="/prescriptions"
-          />
-        </Row>
-
-        <Row className="mb-4">
-          <Col lg={8}>
-            {/* Today's Appointments */}
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Header className="bg-white border-0 pt-4">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="mb-0 fw-bold">Today's Appointments</h5>
-                    <p className="text-muted small mb-0">You have {stats.todayAppointments} appointments today</p>
-                  </div>
-                  <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => navigate('/appointments')}
-                  >
-                    View All <ChevronRight size={16} />
-                  </Button>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-5">
+                  <Stethoscope size={48} className="text-slate-200 mb-3" />
+                  <p className="text-slate-400">No appointments found in your queue.</p>
                 </div>
-              </Card.Header>
-              <Card.Body className="p-0">
-                <div className="table-responsive">
-                  <Table hover className="mb-0">
-                    <thead className="bg-light">
+              ) : (
+                <table className="doctor-table-premium">
+                  <thead>
                     <tr>
-                      <th className="px-4 py-3">Patient</th>
-                      <th className="px-4 py-3">Time</th>
-                      <th className="px-4 py-3">Type</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Actions</th>
+                      <th>Patient</th>
+                      <th>Time</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
-                    </thead>
-                    <tbody>
-                    {todayAppointments.map((appointment) => (
-                        <tr key={appointment.id}>
-                          <td className="px-4 py-3 align-middle">
-                            <div className="d-flex align-items-center gap-2">
-                              <div
-                                  className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
-                                  style={{ width: '32px', height: '32px', fontSize: '12px', fontWeight: 'bold' }}
-                              >
-                                {appointment.avatar}
-                              </div>
-                              <div>
-                                <div className="fw-semibold">{appointment.patientName}</div>
-                                <small className="text-muted">ID: #{appointment.id}</small>
-                              </div>
+                  </thead>
+                  <tbody>
+                    {appointments.slice(0, 6).map((apt) => (
+                      <tr key={apt.id}>
+                        <td>
+                          <div className="d-flex align-items-center gap-3">
+                            <div className="patient-avatar-premium">
+                              {apt.patientName?.charAt(0) || 'P'}
                             </div>
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            <div className="fw-semibold">{appointment.time}</div>
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            <Badge bg={appointment.type === 'Telemedicine' ? 'info' : 'secondary'}>
-                              {appointment.type}
-                            </Badge>
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            {getStatusBadge(appointment.status)}
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            <ButtonGroup size="sm">
-                              <Button
-                                  variant="outline-primary"
-                                  onClick={() => {
-                                    if (appointment.type === 'Telemedicine') {
-                                      navigate('/telemedicine');
-                                    } else {
-                                      navigate('/appointments');
-                                    }
-                                  }}
-                              >
-                                {appointment.type === 'Telemedicine' ? 'Join' : 'View'}
-                              </Button>
-                            </ButtonGroup>
-                          </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                  </Table>
-                </div>
-              </Card.Body>
-            </Card>
-
-            {/* Recent Patients */}
-            <Card className="shadow-sm border-0">
-              <Card.Header className="bg-white border-0 pt-4">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="mb-0 fw-bold">Recent Patients</h5>
-                    <p className="text-muted small mb-0">Patients you've recently treated</p>
-                  </div>
-                  <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={() => navigate('/patient-report')}
-                  >
-                    View All <ChevronRight size={16} />
-                  </Button>
-                </div>
-              </Card.Header>
-              <Card.Body className="p-0">
-                <div className="table-responsive">
-                  <Table hover className="mb-0">
-                    <thead className="bg-light">
-                    <tr>
-                      <th className="px-4 py-3">Patient Name</th>
-                      <th className="px-4 py-3">Last Visit</th>
-                      <th className="px-4 py-3">Condition</th>
-                      <th className="px-4 py-3">Next Appointment</th>
-                      <th className="px-4 py-3">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {recentPatients.map((patient) => (
-                        <tr key={patient.id}>
-                          <td className="px-4 py-3 align-middle">
-                            <div className="fw-semibold">{patient.name}</div>
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            {formatDate(patient.lastVisit)}
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            <Badge bg="info">{patient.condition}</Badge>
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            {formatDate(patient.nextAppointment)}
-                          </td>
-                          <td className="px-4 py-3 align-middle">
-                            <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() => navigate('/patient-report')}
-                            >
-                              View Records
-                            </Button>
-                          </td>
-                        </tr>
-                    ))}
-                    </tbody>
-                  </Table>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          <Col lg={4}>
-            {/* Pending Requests */}
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Header className="bg-white border-0 pt-4">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 className="mb-0 fw-bold">Pending Requests</h5>
-                    <p className="text-muted small mb-0">Awaiting your response</p>
-                  </div>
-                  <Badge bg="warning">{stats.pendingRequests}</Badge>
-                </div>
-              </Card.Header>
-              <Card.Body className="p-0">
-                <ListGroup variant="flush">
-                  {pendingRequests.map((request) => (
-                      <ListGroup.Item key={request.id} className="p-3">
-                        <div className="d-flex justify-content-between align-items-start">
-                          <div>
-                            <div className="fw-semibold">{request.patientName}</div>
-                            <small className="text-muted">
-                              {request.type} • {request.requestedDate} at {request.requestedTime}
-                            </small>
-                            <div className="mt-1">
-                              <small className="text-muted">{request.reason}</small>
+                            <div>
+                              <div className="fw-bold text-slate-800">{apt.patientName}</div>
+                              <div className="text-slate-400 tiny">Last visit: 2 months ago</div>
                             </div>
                           </div>
-                          <Button
-                              variant="outline-primary"
-                              size="sm"
-                              onClick={() => {
-                                if (request.type === 'Telemedicine') {
-                                  navigate('/telemedicine');
-                                } else {
-                                  navigate('/appointments');
-                                }
-                              }}
-                          >
-                            Review
-                          </Button>
-                        </div>
-                      </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </Card.Body>
-            </Card>
-
-            {/* Upcoming Schedule */}
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Header className="bg-white border-0 pt-4">
-                <h5 className="mb-0 fw-bold">Upcoming Schedule</h5>
-              </Card.Header>
-              <Card.Body>
-                {upcomingSchedule.map((day) => (
-                    <div key={day.id} className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                          <span className="fw-semibold">{day.day}</span>
-                          <small className="text-muted ms-2">{day.date}</small>
-                        </div>
-                        <Badge bg="primary">{day.appointments} appointments</Badge>
-                      </div>
-                      <ProgressBar
-                          now={(day.appointments / 10) * 100}
-                          variant="success"
-                          className="mb-2"
-                      />
-                      <div className="d-flex justify-content-between">
-                        <small className="text-muted">
-                          <Video size={12} className="me-1" />
-                          {day.telemedicine} Telemedicine
-                        </small>
-                        <small className="text-muted">
-                          <Users size={12} className="me-1" />
-                          {day.appointments - day.telemedicine} In-person
-                        </small>
-                      </div>
-                    </div>
-                ))}
-              </Card.Body>
-            </Card>
-
-            {/* Recent Activities */}
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Header className="bg-white border-0 pt-4">
-                <div className="d-flex justify-content-between align-items-center">
-                  <h5 className="mb-0 fw-bold">Recent Activities</h5>
-                  <RefreshCw size={16} className="text-muted cursor-pointer" />
-                </div>
-              </Card.Header>
-              <Card.Body className="p-0">
-                <ListGroup variant="flush">
-                  {recentActivities.map((activity) => (
-                      <ListGroup.Item key={activity.id} className="p-3">
-                        <div className="d-flex gap-3">
-                          <div>
-                            {activity.type === 'prescription' && <FileText size={20} className="text-primary" />}
-                            {activity.type === 'appointment' && <CheckCircle size={20} className="text-success" />}
-                            {activity.type === 'report' && <Activity size={20} className="text-info" />}
-                            {activity.type === 'telemedicine' && <Video size={20} className="text-warning" />}
+                        </td>
+                        <td>
+                          <div className="time-badge-premium">
+                            <Clock size={12} className="me-2 text-primary" />
+                            {new Date(apt.appointmentDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
-                          <div className="flex-grow-1">
-                            <div className="fw-semibold">{activity.action}</div>
-                            <small className="text-muted">
-                              Patient: {activity.patient} • {activity.time}
-                            </small>
-                          </div>
-                        </div>
-                      </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </Card.Body>
-            </Card>
+                        </td>
+                        <td>
+                          <span className="type-tag-premium">{apt.location === 'ONLINE' ? 'Video Call' : 'Hospital'}</span>
+                        </td>
+                        <td>
+                          <span className={`status-pill-premium ${getStatusClass(apt.status)}`}>
+                            {apt.status}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn-action-premium" onClick={() => navigate(`/appointments`)}>
+                            <ChevronRight size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <button className="btn-view-all-premium mt-4 w-100" onClick={() => navigate('/appointments')}>
+              View Full Interactive Schedule
+              <ArrowRight size={16} className="ms-2" />
+            </button>
+          </div>
+        </div>
 
-            {/* Top Prescribed Medicines */}
-            <Card className="shadow-sm border-0">
-              <Card.Header className="bg-white border-0 pt-4">
-                <h5 className="mb-0 fw-bold">Top Prescribed Medicines</h5>
-              </Card.Header>
-              <Card.Body>
-                {topMedicines.map((medicine, idx) => (
-                    <div key={idx} className="mb-3">
-                      <div className="d-flex justify-content-between mb-1">
-                        <span className="fw-semibold">{medicine.name}</span>
-                        <span className="text-muted">{medicine.count} prescriptions</span>
-                      </div>
-                      <ProgressBar
-                          now={medicine.percentage}
-                          variant="primary"
-                          className="mb-2"
-                      />
-                    </div>
-                ))}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Quick Actions Footer */}
-        <Row>
-          <Col>
-            <Card className="shadow-sm border-0 bg-primary text-white">
-              <Card.Body className="p-4">
-                <div className="text-center">
-                  <h5 className="mb-3">Quick Actions</h5>
-                  <div className="d-flex justify-content-center gap-3 flex-wrap">
-                    <Button
-                        variant="light"
-                        onClick={() => navigate('/prescriptions')}
-                        className="d-flex align-items-center gap-2"
-                    >
-                      <FileText size={18} />
-                      New Prescription
-                    </Button>
-                    <Button
-                        variant="outline-light"
-                        onClick={() => navigate('/availability')}
-                        className="d-flex align-items-center gap-2"
-                    >
-                      <Calendar size={18} />
-                      Manage Schedule
-                    </Button>
-                    <Button
-                        variant="outline-light"
-                        onClick={() => navigate('/telemedicine')}
-                        className="d-flex align-items-center gap-2"
-                    >
-                      <Video size={18} />
-                      Start Telemedicine
-                    </Button>
-                    <Button
-                        variant="outline-light"
-                        onClick={() => navigate('/patient-report')}
-                        className="d-flex align-items-center gap-2"
-                    >
-                      <Users size={18} />
-                      View Patients
-                    </Button>
+        {/* Right Sidebar */}
+        <div className="col-lg-4">
+          {/* Recent Activity */}
+          <div className="content-panel-premium mb-4">
+            <h5 className="fw-bold mb-4 d-flex align-items-center text-slate-900">
+              <Activity size={18} className="me-2 text-primary" />
+              Recent Clinical Activity
+            </h5>
+            <div className="activity-timeline-premium">
+              {[
+                { title: "Prescription Issued", patient: "John Doe", time: "15 min ago", icon: <FileText size={14} />, color: "#3b82f6" },
+                { title: "Lab Results Ready", patient: "Maria Garcia", time: "1 hour ago", icon: <CheckCircle size={14} />, color: "#10b981" },
+                { title: "Review Pending", patient: "Robert Fox", time: "3 hours ago", icon: <Activity size={14} />, color: "#f59e0b" },
+              ].map((act, i) => (
+                <div key={i} className="timeline-item-premium">
+                  <div className="timeline-icon-premium" style={{ backgroundColor: `${act.color}15`, color: act.color }}>{act.icon}</div>
+                  <div className="timeline-content">
+                    <div className="fw-semibold small text-slate-800">{act.title}</div>
+                    <div className="text-slate-500 tiny">Patient: {act.patient} • {act.time}</div>
                   </div>
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+              ))}
+            </div>
+          </div>
 
-        <style jsx>{`
-        .cursor-pointer {
-          cursor: pointer;
-          transition: transform 0.2s;
+          {/* Performance Analytics Card */}
+          <div className="content-panel-premium accent-gradient-card">
+            <h5 className="fw-bold mb-4 text-slate-900">Practice Analytics</h5>
+            <div className="analytics-score text-center mb-4">
+              <div className="score-circle-premium">
+                <h2 className="mb-0 fw-bold text-slate-900">92%</h2>
+                <span className="tiny text-slate-500">Performance</span>
+              </div>
+            </div>
+            <div className="stat-bars mt-4">
+              <div className="stat-bar-item mb-3">
+                <div className="d-flex justify-content-between tiny mb-1">
+                  <span className="text-slate-600">Patient Satisfaction</span>
+                  <span className="fw-bold text-slate-900">98%</span>
+                </div>
+                <div className="progress-premium"><div className="bar" style={{ width: '98%', background: '#10b981' }}></div></div>
+              </div>
+              <div className="stat-bar-item">
+                <div className="d-flex justify-content-between tiny mb-1">
+                  <span className="text-slate-600">Consultation Efficiency</span>
+                  <span className="fw-bold text-slate-900">84%</span>
+                </div>
+                <div className="progress-premium"><div className="bar" style={{ width: '84%', background: '#3b82f6' }}></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .doctor-dashboard-premium {
+          color: var(--text-main);
+          padding: 1rem;
         }
-        .cursor-pointer:hover {
+
+        .text-slate-900 { color: #0f172a; }
+        .text-slate-800 { color: #1e293b; }
+        .text-slate-600 { color: #475569; }
+        .text-slate-500 { color: #64748b; }
+        .text-slate-400 { color: #94a3b8; }
+        .text-slate-200 { color: #e2e8f0; }
+
+        .badge-status {
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 14px;
+          background: #f8fafc;
+          border-radius: 99px;
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+        }
+
+        .btn-primary-premium {
+          background: var(--primary);
+          color: #fff;
+          border: none;
+          padding: 0.8rem 1.6rem;
+          border-radius: 12px;
+          font-weight: 700;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary-premium:hover {
+          background: var(--primary-dark);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-icon-light {
+          background: #fff;
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          margin-right: 12px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: 0.2s;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .btn-icon-light:hover { 
+          border-color: var(--primary);
+          color: var(--primary);
+          background: var(--accent-light);
+        }
+
+        .stat-card-premium {
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 1.5rem;
+          box-shadow: var(--shadow-sm);
+          transition: all 0.3s ease;
+        }
+
+        .stat-card-premium:hover {
           transform: translateY(-5px);
+          box-shadow: var(--shadow-md);
+          border-color: var(--primary);
+        }
+
+        .card-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .trend-badge {
+          display: flex;
+          align-items: center;
+          font-size: 0.7rem;
+          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 100px;
+        }
+
+        .trend-badge.positive { background: #dcfce7; color: #166534; }
+
+        .content-panel-premium {
+          background: #fff;
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          padding: 2rem;
+          box-shadow: var(--shadow-sm);
+        }
+
+        .btn-group-premium {
+          display: flex;
+          background: #f1f5f9;
+          border-radius: 12px;
+          padding: 4px;
+        }
+
+        .btn-group-premium button {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          padding: 8px 16px;
+          border-radius: 10px;
+          font-size: 0.8rem;
+          font-weight: 600;
+          transition: 0.2s;
+        }
+
+        .btn-group-premium button.active {
+          background: #fff;
+          color: var(--primary);
+          box-shadow: var(--shadow-sm);
+        }
+
+        .doctor-table-premium {
+          width: 100%;
+          border-collapse: separate;
+          border-spacing: 0 16px;
+          margin-top: -16px;
+        }
+
+        .doctor-table-premium th {
+          padding: 1rem 1.5rem;
+          font-size: 0.75rem;
+          color: var(--text-light);
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .doctor-table-premium td {
+          background: #fff;
+          padding: 1.25rem 1.5rem;
+          vertical-align: middle;
+          border-top: 1px solid var(--border-light);
+          border-bottom: 1px solid var(--border-light);
+        }
+
+        .doctor-table-premium tr td:first-child { border-left: 1px solid var(--border-light); border-radius: 16px 0 0 16px; }
+        .doctor-table-premium tr td:last-child { border-right: 1px solid var(--border-light); border-radius: 0 16px 16px 0; }
+
+        .patient-avatar-premium {
+          width: 44px;
+          height: 44px;
+          background: var(--accent-light);
+          color: var(--primary);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+        }
+
+        .time-badge-premium {
+          display: inline-flex;
+          align-items: center;
+          background: #f8fafc;
+          border: 1px solid var(--border);
+          padding: 6px 14px;
+          border-radius: 10px;
+          font-size: 0.85rem;
+          font-weight: 700;
+          color: var(--text-main);
+        }
+
+        .type-tag-premium { 
+          font-size: 0.8rem; 
+          color: var(--primary); 
+          font-weight: 700;
+          background: var(--accent-light);
+          padding: 4px 12px;
+          border-radius: 8px;
+        }
+
+        .status-pill-premium {
+          padding: 6px 12px;
+          border-radius: 99px;
+          font-size: 0.7rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+
+        .status-confirmed { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-completed { background: #e0f2fe; color: #075985; }
+
+        .btn-action-premium {
+          width: 40px;
+          height: 40px;
+          background: #fff;
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.25s;
+        }
+
+        .btn-action-premium:hover {
+          border-color: var(--primary);
+          color: var(--primary);
+          background: var(--accent-light);
+        }
+
+        .btn-view-all-premium {
+          background: #f8fafc;
+          border: 1px solid var(--border);
+          color: var(--text-muted);
+          padding: 1rem;
+          border-radius: 16px;
+          font-size: 0.9rem;
+          font-weight: 700;
+          transition: 0.2s;
+        }
+
+        .btn-view-all-premium:hover {
+          background: #f1f5f9;
+          color: var(--primary);
+          border-color: var(--primary);
+        }
+
+        .activity-timeline-premium { position: relative; }
+        
+        .timeline-item-premium {
+          display: flex;
+          gap: 15px;
+          margin-bottom: 24px;
+        }
+
+        .timeline-icon-premium {
+          width: 36px;
+          height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .score-circle-premium {
+          width: 140px;
+          height: 140px;
+          border-radius: 50%;
+          border: 8px solid #f1f5f9;
+          border-top-color: var(--primary);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          box-shadow: inset var(--shadow-sm);
+        }
+
+        .progress-premium {
+          width: 100%;
+          height: 8px;
+          background: #f1f5f9;
+          border-radius: 10px;
+          overflow: hidden;
+        }
+
+        .progress-premium .bar {
+          height: 100%;
+          border-radius: inherit;
+        }
+
+        .tiny { font-size: 0.75rem; }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      </Container>
+    </div>
   );
-};
-
-export default DoctorDashboard;
+}

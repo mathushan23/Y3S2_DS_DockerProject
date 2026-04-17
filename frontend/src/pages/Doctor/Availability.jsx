@@ -91,13 +91,13 @@ const Availability = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            
+
             if (response.ok) {
                 const doctorData = await response.json();
                 if (doctorData.workingHours) setAvailability(doctorData.workingHours);
                 // if (doctorData.unavailableDates) setUnavailableDates(doctorData.unavailableDates);
             }
-            
+
             // Also fetch booked slots from appointment service
             const appointmentsResponse = await fetch(`${API_BASE_URL}/api/appointments?doctorId=${user.id}`, {
                 headers: {
@@ -106,13 +106,21 @@ const Availability = () => {
             });
             if (appointmentsResponse.ok) {
                 const appointments = await appointmentsResponse.json();
-                setBookedSlots(appointments.map(app => ({
-                    id: app.id,
-                    patientName: app.patientName,
-                    date: app.appointmentDateTime.split('T')[0],
-                    startTime: app.appointmentDateTime.split('T')[1].substring(0, 5),
-                    status: app.status
-                })));
+                setBookedSlots(appointments.map(app => {
+                    // Extract time to calculate an estimated end time (30 mins later)
+                    const [date, time] = app.appointmentDateTime.split('T');
+                    const [hours, mins] = time.split(':').map(Number);
+                    const totalMins = hours * 60 + mins + 30;
+                    const endHours = Math.floor(totalMins / 60).toString().padStart(2, '0');
+                    const endMins = (totalMins % 60).toString().padStart(2, '0');
+
+                    return {
+                        ...app,
+                        date: date,
+                        startTime: time.substring(0, 5),
+                        endTime: `${endHours}:${endMins}`,
+                    };
+                }));
             }
         } catch (error) {
             console.error("Error loading availability:", error);
@@ -275,6 +283,51 @@ const Availability = () => {
         }
     };
 
+    const handleUpdateAppointmentStatus = async (appointmentId, newStatus) => {
+        try {
+            const appointment = bookedSlots.find(a => a.id === appointmentId);
+            if (!appointment) return;
+
+            // Prepare the full request body as required by the backend's PUT endpoint
+            const updateRequest = {
+                patientId: appointment.patientId,
+                doctorId: appointment.doctorId,
+                patientName: appointment.patientName,
+                doctorName: appointment.doctorName,
+                specialty: appointment.specialty,
+                appointmentDateTime: appointment.appointmentDateTime,
+                status: newStatus.toUpperCase(),
+                patientEmail: appointment.patientEmail,
+                patientPhone: appointment.patientPhone,
+                location: appointment.location,
+                notes: appointment.notes,
+                billingStatus: appointment.billingStatus,
+                fee: appointment.fee,
+                reason: appointment.reason,
+                symptoms: appointment.symptoms
+            };
+
+            const response = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(updateRequest)
+            });
+
+            if (response.ok) {
+                showNotification(`Appointment ${newStatus} successfully!`, "success");
+                loadAvailabilityData(); // Refresh the data
+            } else {
+                showNotification("Failed to update appointment status", "danger");
+            }
+        } catch (error) {
+            console.error("Error updating status:", error);
+            showNotification("Connection error while updating status", "danger");
+        }
+    };
+
     const generateTimeSlotsForDay = (availabilityItem, date) => {
         const slots = [];
         let currentTime = availabilityItem.startTime;
@@ -392,632 +445,793 @@ const Availability = () => {
         : 0;
 
     return (
-        <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-            <ToastContainer position="top-end" className="p-3">
-                <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
-                    <Toast.Header>
-                        <strong className="me-auto">
-                            {toastVariant === 'success' && <CheckCircle size={18} />}
-                            {toastVariant === 'danger' && <AlertCircle size={18} />}
-                        </strong>
-                    </Toast.Header>
-                    <Toast.Body>{toastMessage}</Toast.Body>
-                </Toast>
-            </ToastContainer>
+        <>
+            <Container fluid className="py-4 availability-premium-page">
+                <ToastContainer position="top-end" className="p-3">
+                    <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
+                        <Toast.Header>
+                            <strong className="me-auto">
+                                {toastVariant === 'success' && <CheckCircle size={18} />}
+                                {toastVariant === 'danger' && <AlertCircle size={18} />}
+                            </strong>
+                        </Toast.Header>
+                        <Toast.Body>{toastMessage}</Toast.Body>
+                    </Toast>
+                </ToastContainer>
 
-            {/* Header */}
-            <Row className="mb-4">
-                <Col>
-                    <Card className="shadow-sm border-0">
-                        <Card.Body className="p-4">
-                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <div>
-                                    <h2 className="mb-1 fw-bold">Availability Management</h2>
-                                    <p className="text-muted mb-0">
-                                        Manage your working hours, time slots, and appointments
-                                    </p>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <Button
-                                        variant="outline-danger"
-                                        onClick={handleOpenUnavailableModal}
-                                        className="d-flex align-items-center gap-2"
-                                    >
-                                        <Ban size={18} />
-                                        Mark Unavailable
-                                    </Button>
-                                    <Button
-                                        variant="primary"
-                                        onClick={() => handleOpenModal()}
-                                        className="d-flex align-items-center gap-2"
-                                    >
-                                        <Plus size={18} />
-                                        Add Schedule
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Statistics Cards */}
-            <Row className="mb-4">
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Weekly Available Slots</h6>
-                                    <h3 className="mb-0 fw-bold">{totalWeeklySlots}</h3>
-                                </div>
-                                <div className="bg-primary bg-opacity-10 rounded p-3">
-                                    <ClockIcon size={24} className="text-primary" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Booked Appointments</h6>
-                                    <h3 className="mb-0 fw-bold">{totalBookedThisWeek}</h3>
-                                </div>
-                                <div className="bg-success bg-opacity-10 rounded p-3">
-                                    <UserCheck size={24} className="text-success" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Available Slots Left</h6>
-                                    <h3 className="mb-0 fw-bold">{totalWeeklySlots - totalBookedThisWeek}</h3>
-                                </div>
-                                <div className="bg-info bg-opacity-10 rounded p-3">
-                                    <CalendarIcon size={24} className="text-info" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Utilization Rate</h6>
-                                    <h3 className="mb-0 fw-bold">{Math.round(availabilityPercentage)}%</h3>
-                                </div>
-                                <div className="bg-warning bg-opacity-10 rounded p-3">
-                                    <Users size={24} className="text-warning" />
-                                </div>
-                            </div>
-                            <ProgressBar
-                                now={availabilityPercentage}
-                                className="mt-3"
-                                variant={availabilityPercentage > 70 ? 'danger' : 'success'}
-                            />
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {/* Main Content Tabs */}
-            <Row>
-                <Col>
-                    <Card className="shadow-sm border-0">
-                        <Card.Body>
-                            <Tabs
-                                activeKey={activeTab}
-                                onSelect={(k) => setActiveTab(k)}
-                                className="mb-4"
-                                fill
-                            >
-                                <Tab eventKey="weekly" title="Weekly Schedule">
-                                    {/* Week Navigation */}
-                                    <div className="d-flex justify-content-between align-items-center mb-4">
-                                        <Button variant="outline-secondary" onClick={() => changeWeek(-1)}>
-                                            <ChevronLeft size={18} /> Previous Week
+                {/* Header */}
+                <Row className="mb-4">
+                    <Col>
+                        <Card className="shadow-sm border-0">
+                            <Card.Body className="p-4">
+                                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        <h2 className="mb-1 fw-bold">Availability Management</h2>
+                                        <p className="text-muted mb-0">
+                                            Manage your working hours, time slots, and appointments
+                                        </p>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <Button
+                                            variant="outline-danger"
+                                            onClick={handleOpenUnavailableModal}
+                                            className="d-flex align-items-center gap-2"
+                                        >
+                                            <Ban size={18} />
+                                            Mark Unavailable
                                         </Button>
-                                        <h5 className="mb-0">
-                                            Week of {weekDates[0]?.fullDate?.toLocaleDateString()} -
-                                            {weekDates[6]?.fullDate?.toLocaleDateString()}
-                                        </h5>
-                                        <Button variant="outline-secondary" onClick={() => changeWeek(1)}>
-                                            Next Week <ChevronRight size={18} />
+                                        <Button
+                                            variant="primary"
+                                            onClick={() => handleOpenModal()}
+                                            className="d-flex align-items-center gap-2"
+                                        >
+                                            <Plus size={18} />
+                                            Add Schedule
                                         </Button>
                                     </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-                                    {/* Weekly Schedule Grid */}
-                                    <div className="table-responsive">
-                                        <Table bordered className="text-center">
-                                            <thead className="bg-light">
-                                            <tr>
-                                                <th style={{ width: '100px' }}>Time</th>
-                                                {weekDates.map((day, idx) => (
-                                                    <th key={idx}>
-                                                        {day.dayName}<br />
-                                                        <small className="text-muted">{day.date}</small>
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {timeSlots.map((timeSlot, idx) => {
-                                                const hasAnySlot = weekDates.some(day => {
-                                                    const availabilityItem = getDayAvailability(day.dayName);
-                                                    return availabilityItem &&
-                                                        timeSlot >= availabilityItem.startTime &&
-                                                        timeSlot < availabilityItem.endTime &&
-                                                        (timeSlot < availabilityItem.breakStart || timeSlot >= availabilityItem.breakEnd);
-                                                });
+                {/* Statistics Cards */}
+                <Row className="mb-4">
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Weekly Available Slots</h6>
+                                        <h3 className="mb-0 fw-bold">{totalWeeklySlots}</h3>
+                                    </div>
+                                    <div className="bg-primary bg-opacity-10 rounded p-3">
+                                        <ClockIcon size={24} className="text-primary" />
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Booked Appointments</h6>
+                                        <h3 className="mb-0 fw-bold">{totalBookedThisWeek}</h3>
+                                    </div>
+                                    <div className="bg-success bg-opacity-10 rounded p-3">
+                                        <UserCheck size={24} className="text-success" />
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Available Slots Left</h6>
+                                        <h3 className="mb-0 fw-bold">{totalWeeklySlots - totalBookedThisWeek}</h3>
+                                    </div>
+                                    <div className="bg-info bg-opacity-10 rounded p-3">
+                                        <CalendarIcon size={24} className="text-info" />
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Utilization Rate</h6>
+                                        <h3 className="mb-0 fw-bold">{Math.round(availabilityPercentage)}%</h3>
+                                    </div>
+                                    <div className="bg-warning bg-opacity-10 rounded p-3">
+                                        <Users size={24} className="text-warning" />
+                                    </div>
+                                </div>
+                                <ProgressBar
+                                    now={availabilityPercentage}
+                                    className="mt-3"
+                                    variant={availabilityPercentage > 70 ? 'danger' : 'success'}
+                                />
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-                                                if (!hasAnySlot) return null;
+                {/* Main Content Tabs */}
+                <Row>
+                    <Col>
+                        <Card className="shadow-sm border-0">
+                            <Card.Body>
+                                <Tabs
+                                    activeKey={activeTab}
+                                    onSelect={(k) => setActiveTab(k)}
+                                    className="mb-4"
+                                    fill
+                                >
+                                    <Tab eventKey="weekly" title="Weekly Schedule">
+                                        {/* Week Navigation */}
+                                        <div className="d-flex justify-content-between align-items-center mb-4">
+                                            <Button variant="outline-secondary" onClick={() => changeWeek(-1)}>
+                                                <ChevronLeft size={18} /> Previous Week
+                                            </Button>
+                                            <h5 className="mb-0">
+                                                Week of {weekDates[0]?.fullDate?.toLocaleDateString()} -
+                                                {weekDates[6]?.fullDate?.toLocaleDateString()}
+                                            </h5>
+                                            <Button variant="outline-secondary" onClick={() => changeWeek(1)}>
+                                                Next Week <ChevronRight size={18} />
+                                            </Button>
+                                        </div>
 
-                                                return (
-                                                    <tr key={idx}>
-                                                        <td className="bg-light fw-semibold">{timeSlot}</td>
-                                                        {weekDates.map((day, dayIdx) => {
+                                        {/* Weekly Schedule Grid */}
+                                        <div className="table-responsive">
+                                            <Table bordered className="text-center">
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th style={{ width: '100px' }}>Time</th>
+                                                        {weekDates.map((day, idx) => (
+                                                            <th key={idx}>
+                                                                {day.dayName}<br />
+                                                                <small className="text-muted">{day.date}</small>
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {timeSlots.map((timeSlot, idx) => {
+                                                        const hasAnySlot = weekDates.some(day => {
                                                             const availabilityItem = getDayAvailability(day.dayName);
-                                                            const isAvailable = availabilityItem &&
+                                                            return availabilityItem &&
                                                                 timeSlot >= availabilityItem.startTime &&
                                                                 timeSlot < availabilityItem.endTime &&
                                                                 (timeSlot < availabilityItem.breakStart || timeSlot >= availabilityItem.breakEnd);
+                                                        });
 
-                                                            const isBooked = bookedSlots.some(slot =>
-                                                                slot.date === day.date &&
-                                                                slot.startTime === timeSlot
-                                                            );
+                                                        if (!hasAnySlot) return null;
 
-                                                            const isUnavailable = unavailableDates.some(ud =>
-                                                                ud.date === day.date &&
-                                                                (ud.isFullDay ||
-                                                                    (ud.startTime <= timeSlot && ud.endTime >= addMinutes(timeSlot, 30)))
-                                                            );
+                                                        return (
+                                                            <tr key={idx}>
+                                                                <td className="bg-light fw-semibold">{timeSlot}</td>
+                                                                {weekDates.map((day, dayIdx) => {
+                                                                    const availabilityItem = getDayAvailability(day.dayName);
+                                                                    const isAvailable = availabilityItem &&
+                                                                        timeSlot >= availabilityItem.startTime &&
+                                                                        timeSlot < availabilityItem.endTime &&
+                                                                        (timeSlot < availabilityItem.breakStart || timeSlot >= availabilityItem.breakEnd);
 
-                                                            let status = 'available';
-                                                            let bgColor = '#d4edda';
-                                                            let statusText = 'Available';
+                                                                    const isBooked = bookedSlots.some(slot =>
+                                                                        slot.date === day.date &&
+                                                                        slot.startTime === timeSlot
+                                                                    );
 
-                                                            if (isUnavailable) {
-                                                                status = 'unavailable';
-                                                                bgColor = '#f8d7da';
-                                                                statusText = 'Unavailable';
-                                                            } else if (isBooked) {
-                                                                status = 'booked';
-                                                                bgColor = '#fff3cd';
-                                                                statusText = 'Booked';
-                                                            } else if (!isAvailable) {
-                                                                status = 'off';
-                                                                bgColor = '#e9ecef';
-                                                                statusText = 'Off Hours';
-                                                            }
+                                                                    const isUnavailable = unavailableDates.some(ud =>
+                                                                        ud.date === day.date &&
+                                                                        (ud.isFullDay ||
+                                                                            (ud.startTime <= timeSlot && ud.endTime >= addMinutes(timeSlot, 30)))
+                                                                    );
 
-                                                            return (
-                                                                <td
-                                                                    key={dayIdx}
-                                                                    style={{
-                                                                        backgroundColor: bgColor,
-                                                                        cursor: status === 'available' ? 'pointer' : 'default'
-                                                                    }}
-                                                                    onClick={() => {
-                                                                        if (status === 'available') {
-                                                                            showNotification(`Slot available for booking at ${timeSlot}`, 'info');
-                                                                        }
-                                                                    }}
+                                                                    let status = 'available';
+                                                                    let bgColor = '#d4edda';
+                                                                    let statusText = 'Available';
+
+                                                                    if (isUnavailable) {
+                                                                        status = 'unavailable';
+                                                                        bgColor = '#f8d7da';
+                                                                        statusText = 'Unavailable';
+                                                                    } else if (isBooked) {
+                                                                        status = 'booked';
+                                                                        bgColor = '#fff3cd';
+                                                                        statusText = 'Booked';
+                                                                    } else if (!isAvailable) {
+                                                                        status = 'off';
+                                                                        bgColor = '#e9ecef';
+                                                                        statusText = 'Off Hours';
+                                                                    }
+
+                                                                    return (
+                                                                        <td
+                                                                            key={dayIdx}
+                                                                            style={{
+                                                                                backgroundColor: bgColor,
+                                                                                cursor: status === 'available' ? 'pointer' : 'default'
+                                                                            }}
+                                                                            onClick={() => {
+                                                                                if (status === 'available') {
+                                                                                    showNotification(`Slot available for booking at ${timeSlot}`, 'info');
+                                                                                }
+                                                                            }}
+                                                                        >
+                                                                            <div className="small">
+                                                                                {status === 'available' && <CheckCircle size={14} className="text-success" />}
+                                                                                {status === 'booked' && <UserCheck size={14} className="text-warning" />}
+                                                                                {status === 'unavailable' && <XCircle size={14} className="text-danger" />}
+                                                                                <div className="mt-1">{statusText}</div>
+                                                                            </div>
+                                                                        </td>
+                                                                    );
+                                                                })}
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </Tab>
+
+                                    <Tab eventKey="schedules" title="Schedules">
+                                        <div className="table-responsive">
+                                            <Table hover className="mb-0">
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th>Day</th>
+                                                        <th>Working Hours</th>
+                                                        <th>Break Time</th>
+                                                        <th>Slot Duration</th>
+                                                        <th>Max Patients/Slot</th>
+                                                        <th>Location</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {availability.map((item) => (
+                                                        <tr key={item.id}>
+                                                            <td className="fw-semibold">{item.dayOfWeek}</td>
+                                                            <td>{item.startTime} - {item.endTime}</td>
+                                                            <td>{item.breakStart} - {item.breakEnd}</td>
+                                                            <td>{item.slotDuration} min</td>
+                                                            <td>{item.maxPatientsPerSlot}</td>
+                                                            <td>{item.location}</td>
+                                                            <td>
+                                                                <Badge bg="success">Active</Badge>
+                                                            </td>
+                                                            <td>
+                                                                <div className="d-flex gap-2">
+                                                                    <Button
+                                                                        variant="outline-primary"
+                                                                        size="sm"
+                                                                        onClick={() => handleOpenModal(item)}
+                                                                    >
+                                                                        <Edit size={16} />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline-danger"
+                                                                        size="sm"
+                                                                        onClick={() => handleDeleteAvailability(item.id)}
+                                                                    >
+                                                                        <Trash2 size={16} />
+                                                                    </Button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </Tab>
+
+                                    <Tab eventKey="unavailable" title="Unavailable Dates">
+                                        <div className="mb-3">
+                                            <Button variant="danger" onClick={handleOpenUnavailableModal}>
+                                                <Ban size={18} className="me-2" />
+                                                Mark Date as Unavailable
+                                            </Button>
+                                        </div>
+                                        <div className="table-responsive">
+                                            <Table hover>
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Type</th>
+                                                        <th>Time Range</th>
+                                                        <th>Reason</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {unavailableDates.map((item) => (
+                                                        <tr key={item.id}>
+                                                            <td>{item.date}</td>
+                                                            <td>
+                                                                {item.isFullDay ?
+                                                                    <Badge bg="danger">Full Day</Badge> :
+                                                                    <Badge bg="warning">Partial Day</Badge>
+                                                                }
+                                                            </td>
+                                                            <td>
+                                                                {item.isFullDay ?
+                                                                    "All Day" :
+                                                                    `${item.startTime} - ${item.endTime}`
+                                                                }
+                                                            </td>
+                                                            <td>{item.reason || "No reason provided"}</td>
+                                                            <td>
+                                                                <Button
+                                                                    variant="outline-danger"
+                                                                    size="sm"
+                                                                    onClick={() => handleRemoveUnavailableDate(item.id)}
                                                                 >
-                                                                    <div className="small">
-                                                                        {status === 'available' && <CheckCircle size={14} className="text-success" />}
-                                                                        {status === 'booked' && <UserCheck size={14} className="text-warning" />}
-                                                                        {status === 'unavailable' && <XCircle size={14} className="text-danger" />}
-                                                                        <div className="mt-1">{statusText}</div>
+                                                                    <Trash2 size={16} />
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </Tab>
+
+                                    <Tab eventKey="booked" title="Booked Appointments">
+                                        <div className="table-responsive">
+                                            <Table hover>
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th>Patient</th>
+                                                        <th>Date</th>
+                                                        <th>Time</th>
+                                                        <th>Type</th>
+                                                        <th>Status</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {bookedSlots.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan="6" className="text-center py-4">
+                                                                <div className="text-muted">
+                                                                    <CalendarIcon size={48} className="mb-3" />
+                                                                    <p>No booked appointments yet</p>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        bookedSlots.map((slot) => (
+                                                            <tr key={slot.id}>
+                                                                <td>
+                                                                    <div className="fw-semibold">{slot.patientName}</div>
+                                                                    <small className="text-muted">{slot.patientEmail}</small>
+                                                                </td>
+                                                                <td>{slot.date}</td>
+                                                                <td>{slot.startTime} - {slot.endTime}</td>
+                                                                <td>{slot.appointmentType || "Regular"}</td>
+                                                                <td>
+                                                                    <Badge bg={
+                                                                        slot.status === 'CONFIRMED' ? 'success' :
+                                                                            slot.status === 'REJECTED' ? 'danger' :
+                                                                                'warning'
+                                                                    }>
+                                                                        {slot.status || "PENDING"}
+                                                                    </Badge>
+                                                                </td>
+                                                                <td>
+                                                                    <div className="d-flex gap-2">
+                                                                        {slot.status === 'PENDING' && (
+                                                                            <>
+                                                                                <Button
+                                                                                    variant="outline-success"
+                                                                                    size="sm"
+                                                                                    className="d-flex align-items-center gap-1"
+                                                                                    onClick={() => handleUpdateAppointmentStatus(slot.id, 'confirmed')}
+                                                                                >
+                                                                                    <UserCheck size={14} /> Accept
+                                                                                </Button>
+                                                                                <Button
+                                                                                    variant="outline-danger"
+                                                                                    size="sm"
+                                                                                    className="d-flex align-items-center gap-1"
+                                                                                    onClick={() => handleUpdateAppointmentStatus(slot.id, 'rejected')}
+                                                                                >
+                                                                                    <UserX size={14} /> Reject
+                                                                                </Button>
+                                                                            </>
+                                                                        )}
+                                                                        <Button variant="outline-info" size="sm" className="d-flex align-items-center gap-1">
+                                                                            <Settings size={14} /> Details
+                                                                        </Button>
                                                                     </div>
                                                                 </td>
-                                                            );
-                                                        })}
-                                                    </tr>
-                                                );
-                                            })}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Tab>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </Tab>
+                                </Tabs>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-                                <Tab eventKey="schedules" title="Schedules">
-                                    <div className="table-responsive">
-                                        <Table hover className="mb-0">
-                                            <thead className="bg-light">
-                                            <tr>
-                                                <th>Day</th>
-                                                <th>Working Hours</th>
-                                                <th>Break Time</th>
-                                                <th>Slot Duration</th>
-                                                <th>Max Patients/Slot</th>
-                                                <th>Location</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {availability.map((item) => (
-                                                <tr key={item.id}>
-                                                    <td className="fw-semibold">{item.dayOfWeek}</td>
-                                                    <td>{item.startTime} - {item.endTime}</td>
-                                                    <td>{item.breakStart} - {item.breakEnd}</td>
-                                                    <td>{item.slotDuration} min</td>
-                                                    <td>{item.maxPatientsPerSlot}</td>
-                                                    <td>{item.location}</td>
-                                                    <td>
-                                                        <Badge bg="success">Active</Badge>
-                                                    </td>
-                                                    <td>
-                                                        <div className="d-flex gap-2">
-                                                            <Button
-                                                                variant="outline-primary"
-                                                                size="sm"
-                                                                onClick={() => handleOpenModal(item)}
-                                                            >
-                                                                <Edit size={16} />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline-danger"
-                                                                size="sm"
-                                                                onClick={() => handleDeleteAvailability(item.id)}
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                {/* Add/Edit Availability Modal */}
+                <Modal show={showModal} onHide={handleCloseModal} size="lg">
+                    <Modal.Header closeButton className="bg-primary text-white">
+                        <Modal.Title>
+                            {editingId ? 'Edit Schedule' : 'Add New Schedule'}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Day of Week *">
+                                        <Form.Select
+                                            value={formData.dayOfWeek}
+                                            onChange={(e) => setFormData({ ...formData, dayOfWeek: e.target.value })}
+                                        >
+                                            {daysOfWeek.map(day => (
+                                                <option key={day} value={day}>{day}</option>
                                             ))}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Tab>
+                                        </Form.Select>
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Location">
+                                        <Form.Control
+                                            type="text"
+                                            value={formData.location}
+                                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                                            placeholder="Enter location"
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-                                <Tab eventKey="unavailable" title="Unavailable Dates">
-                                    <div className="mb-3">
-                                        <Button variant="danger" onClick={handleOpenUnavailableModal}>
-                                            <Ban size={18} className="me-2" />
-                                            Mark Date as Unavailable
-                                        </Button>
-                                    </div>
-                                    <div className="table-responsive">
-                                        <Table hover>
-                                            <thead className="bg-light">
-                                            <tr>
-                                                <th>Date</th>
-                                                <th>Type</th>
-                                                <th>Time Range</th>
-                                                <th>Reason</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {unavailableDates.map((item) => (
-                                                <tr key={item.id}>
-                                                    <td>{item.date}</td>
-                                                    <td>
-                                                        {item.isFullDay ?
-                                                            <Badge bg="danger">Full Day</Badge> :
-                                                            <Badge bg="warning">Partial Day</Badge>
-                                                        }
-                                                    </td>
-                                                    <td>
-                                                        {item.isFullDay ?
-                                                            "All Day" :
-                                                            `${item.startTime} - ${item.endTime}`
-                                                        }
-                                                    </td>
-                                                    <td>{item.reason || "No reason provided"}</td>
-                                                    <td>
-                                                        <Button
-                                                            variant="outline-danger"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveUnavailableDate(item.id)}
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Tab>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Start Time *">
+                                        <Form.Control
+                                            type="time"
+                                            value={formData.startTime}
+                                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="End Time *">
+                                        <Form.Control
+                                            type="time"
+                                            value={formData.endTime}
+                                            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-                                <Tab eventKey="booked" title="Booked Appointments">
-                                    <div className="table-responsive">
-                                        <Table hover>
-                                            <thead className="bg-light">
-                                            <tr>
-                                                <th>Patient</th>
-                                                <th>Date</th>
-                                                <th>Time</th>
-                                                <th>Type</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {bookedSlots.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan="6" className="text-center py-4">
-                                                        <div className="text-muted">
-                                                            <CalendarIcon size={48} className="mb-3" />
-                                                            <p>No booked appointments yet</p>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                bookedSlots.map((slot) => (
-                                                    <tr key={slot.id}>
-                                                        <td>
-                                                            <div className="fw-semibold">{slot.patientName}</div>
-                                                            <small className="text-muted">{slot.patientEmail}</small>
-                                                        </td>
-                                                        <td>{slot.date}</td>
-                                                        <td>{slot.startTime} - {slot.endTime}</td>
-                                                        <td>{slot.appointmentType || "Regular"}</td>
-                                                        <td>
-                                                            <Badge bg={slot.status === 'confirmed' ? 'success' : 'warning'}>
-                                                                {slot.status || "Confirmed"}
-                                                            </Badge>
-                                                        </td>
-                                                        <td>
-                                                            <Button variant="outline-info" size="sm">
-                                                                View Details
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                ))
-                                            )}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Tab>
-                            </Tabs>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Break Start">
+                                        <Form.Control
+                                            type="time"
+                                            value={formData.breakStart}
+                                            onChange={(e) => setFormData({ ...formData, breakStart: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Break End">
+                                        <Form.Control
+                                            type="time"
+                                            value={formData.breakEnd}
+                                            onChange={(e) => setFormData({ ...formData, breakEnd: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-            {/* Add/Edit Availability Modal */}
-            <Modal show={showModal} onHide={handleCloseModal} size="lg">
-                <Modal.Header closeButton className="bg-primary text-white">
-                    <Modal.Title>
-                        {editingId ? 'Edit Schedule' : 'Add New Schedule'}
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Day of Week *">
-                                    <Form.Select
-                                        value={formData.dayOfWeek}
-                                        onChange={(e) => setFormData({...formData, dayOfWeek: e.target.value})}
-                                    >
-                                        {daysOfWeek.map(day => (
-                                            <option key={day} value={day}>{day}</option>
-                                        ))}
-                                    </Form.Select>
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Location">
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Slot Duration (minutes)">
+                                        <Form.Control
+                                            type="number"
+                                            value={formData.slotDuration}
+                                            onChange={(e) => setFormData({ ...formData, slotDuration: parseInt(e.target.value) })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Max Patients per Slot">
+                                        <Form.Control
+                                            type="number"
+                                            value={formData.maxPatientsPerSlot}
+                                            onChange={(e) => setFormData({ ...formData, maxPatientsPerSlot: parseInt(e.target.value) })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <Form.Check
+                                        type="checkbox"
+                                        label="Recurring Weekly"
+                                        checked={formData.isRecurring}
+                                        onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+                                    />
+                                </Col>
+                            </Row>
+
+                            {!formData.isRecurring && (
+                                <Row className="mb-3">
+                                    <Col md={6}>
+                                        <FloatingLabel label="Valid From">
+                                            <Form.Control
+                                                type="date"
+                                                value={formData.validFrom}
+                                                onChange={(e) => setFormData({ ...formData, validFrom: e.target.value })}
+                                            />
+                                        </FloatingLabel>
+                                    </Col>
+                                    <Col md={6}>
+                                        <FloatingLabel label="Valid To">
+                                            <Form.Control
+                                                type="date"
+                                                value={formData.validTo}
+                                                onChange={(e) => setFormData({ ...formData, validTo: e.target.value })}
+                                            />
+                                        </FloatingLabel>
+                                    </Col>
+                                </Row>
+                            )}
+
+                            <Form.Group className="mb-3">
+                                <FloatingLabel label="Additional Notes">
                                     <Form.Control
-                                        type="text"
-                                        value={formData.location}
-                                        onChange={(e) => setFormData({...formData, location: e.target.value})}
-                                        placeholder="Enter location"
+                                        as="textarea"
+                                        rows={3}
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                        placeholder="Add any additional notes"
                                     />
                                 </FloatingLabel>
-                            </Col>
-                        </Row>
+                            </Form.Group>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleCloseModal}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleSaveAvailability}>
+                            <Save size={18} className="me-2" />
+                            {editingId ? 'Update Schedule' : 'Save Schedule'}
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Start Time *">
+                {/* Mark Unavailable Modal */}
+                <Modal show={showUnavailableModal} onHide={() => setShowUnavailableModal(false)}>
+                    <Modal.Header closeButton className="bg-danger text-white">
+                        <Modal.Title>Mark Date as Unavailable</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form>
+                            <Form.Group className="mb-3">
+                                <FloatingLabel label="Date *">
                                     <Form.Control
-                                        type="time"
-                                        value={formData.startTime}
-                                        onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                                        type="date"
+                                        value={unavailableData.date}
+                                        onChange={(e) => setUnavailableData({ ...unavailableData, date: e.target.value })}
                                     />
                                 </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="End Time *">
-                                    <Form.Control
-                                        type="time"
-                                        value={formData.endTime}
-                                        onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                            </Form.Group>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Break Start">
-                                    <Form.Control
-                                        type="time"
-                                        value={formData.breakStart}
-                                        onChange={(e) => setFormData({...formData, breakStart: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Break End">
-                                    <Form.Control
-                                        type="time"
-                                        value={formData.breakEnd}
-                                        onChange={(e) => setFormData({...formData, breakEnd: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Slot Duration (minutes)">
-                                    <Form.Control
-                                        type="number"
-                                        value={formData.slotDuration}
-                                        onChange={(e) => setFormData({...formData, slotDuration: parseInt(e.target.value)})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Max Patients per Slot">
-                                    <Form.Control
-                                        type="number"
-                                        value={formData.maxPatientsPerSlot}
-                                        onChange={(e) => setFormData({...formData, maxPatientsPerSlot: parseInt(e.target.value)})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-
-                        <Row className="mb-3">
-                            <Col md={6}>
+                            <Form.Group className="mb-3">
                                 <Form.Check
                                     type="checkbox"
-                                    label="Recurring Weekly"
-                                    checked={formData.isRecurring}
-                                    onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})}
+                                    label="Full Day Unavailable"
+                                    checked={unavailableData.isFullDay}
+                                    onChange={(e) => setUnavailableData({ ...unavailableData, isFullDay: e.target.checked })}
                                 />
-                            </Col>
-                        </Row>
+                            </Form.Group>
 
-                        {!formData.isRecurring && (
-                            <Row className="mb-3">
-                                <Col md={6}>
-                                    <FloatingLabel label="Valid From">
-                                        <Form.Control
-                                            type="date"
-                                            value={formData.validFrom}
-                                            onChange={(e) => setFormData({...formData, validFrom: e.target.value})}
-                                        />
-                                    </FloatingLabel>
-                                </Col>
-                                <Col md={6}>
-                                    <FloatingLabel label="Valid To">
-                                        <Form.Control
-                                            type="date"
-                                            value={formData.validTo}
-                                            onChange={(e) => setFormData({...formData, validTo: e.target.value})}
-                                        />
-                                    </FloatingLabel>
-                                </Col>
-                            </Row>
-                        )}
+                            {!unavailableData.isFullDay && (
+                                <Row className="mb-3">
+                                    <Col md={6}>
+                                        <FloatingLabel label="Start Time">
+                                            <Form.Control
+                                                type="time"
+                                                value={unavailableData.startTime}
+                                                onChange={(e) => setUnavailableData({ ...unavailableData, startTime: e.target.value })}
+                                            />
+                                        </FloatingLabel>
+                                    </Col>
+                                    <Col md={6}>
+                                        <FloatingLabel label="End Time">
+                                            <Form.Control
+                                                type="time"
+                                                value={unavailableData.endTime}
+                                                onChange={(e) => setUnavailableData({ ...unavailableData, endTime: e.target.value })}
+                                            />
+                                        </FloatingLabel>
+                                    </Col>
+                                </Row>
+                            )}
 
-                        <Form.Group className="mb-3">
-                            <FloatingLabel label="Additional Notes">
-                                <Form.Control
-                                    as="textarea"
-                                    rows={3}
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                                    placeholder="Add any additional notes"
-                                />
-                            </FloatingLabel>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseModal}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleSaveAvailability}>
-                        <Save size={18} className="me-2" />
-                        {editingId ? 'Update Schedule' : 'Save Schedule'}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                            <Form.Group className="mb-3">
+                                <FloatingLabel label="Reason (Optional)">
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        value={unavailableData.reason}
+                                        onChange={(e) => setUnavailableData({ ...unavailableData, reason: e.target.value })}
+                                        placeholder="e.g., Vacation, Conference, Sick Leave"
+                                    />
+                                </FloatingLabel>
+                            </Form.Group>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowUnavailableModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="danger" onClick={handleSaveUnavailableDate}>
+                            <Ban size={18} className="me-2" />
+                            Mark as Unavailable
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </Container>
 
-            {/* Mark Unavailable Modal */}
-            <Modal show={showUnavailableModal} onHide={() => setShowUnavailableModal(false)}>
-                <Modal.Header closeButton className="bg-danger text-white">
-                    <Modal.Title>Mark Date as Unavailable</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <FloatingLabel label="Date *">
-                                <Form.Control
-                                    type="date"
-                                    value={unavailableData.date}
-                                    onChange={(e) => setUnavailableData({...unavailableData, date: e.target.value})}
-                                />
-                            </FloatingLabel>
-                        </Form.Group>
 
-                        <Form.Group className="mb-3">
-                            <Form.Check
-                                type="checkbox"
-                                label="Full Day Unavailable"
-                                checked={unavailableData.isFullDay}
-                                onChange={(e) => setUnavailableData({...unavailableData, isFullDay: e.target.checked})}
-                            />
-                        </Form.Group>
+            <style>{`
+            .availability-premium-page {
+                background-color: var(--bg-main);
+                min-height: 100vh;
+                padding: 2rem;
+            }
 
-                        {!unavailableData.isFullDay && (
-                            <Row className="mb-3">
-                                <Col md={6}>
-                                    <FloatingLabel label="Start Time">
-                                        <Form.Control
-                                            type="time"
-                                            value={unavailableData.startTime}
-                                            onChange={(e) => setUnavailableData({...unavailableData, startTime: e.target.value})}
-                                        />
-                                    </FloatingLabel>
-                                </Col>
-                                <Col md={6}>
-                                    <FloatingLabel label="End Time">
-                                        <Form.Control
-                                            type="time"
-                                            value={unavailableData.endTime}
-                                            onChange={(e) => setUnavailableData({...unavailableData, endTime: e.target.value})}
-                                        />
-                                    </FloatingLabel>
-                                </Col>
-                            </Row>
-                        )}
+            .availability-premium-page .card {
+                border-radius: 20px;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border);
+                overflow: hidden;
+            }
 
-                        <Form.Group className="mb-3">
-                            <FloatingLabel label="Reason (Optional)">
-                                <Form.Control
-                                    as="textarea"
-                                    rows={2}
-                                    value={unavailableData.reason}
-                                    onChange={(e) => setUnavailableData({...unavailableData, reason: e.target.value})}
-                                    placeholder="e.g., Vacation, Conference, Sick Leave"
-                                />
-                            </FloatingLabel>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowUnavailableModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="danger" onClick={handleSaveUnavailableDate}>
-                        <Ban size={18} className="me-2" />
-                        Mark as Unavailable
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
+            .availability-premium-page .card-body {
+                padding: 2rem;
+            }
+
+            .availability-premium-page .nav-tabs {
+                border-bottom: 2px solid var(--border-light);
+                gap: 1rem;
+            }
+
+            .availability-premium-page .nav-link {
+                border: none;
+                color: var(--text-muted);
+                font-weight: 600;
+                padding: 1rem 1.5rem;
+                border-radius: 12px 12px 0 0;
+                transition: all 0.2s ease;
+            }
+
+            .availability-premium-page .nav-link:hover {
+                background-color: var(--accent-light);
+                color: var(--primary);
+            }
+
+            .availability-premium-page .nav-link.active {
+                color: var(--primary);
+                background-color: transparent;
+                border-bottom: 3px solid var(--primary);
+            }
+
+            .availability-premium-page .table {
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--border-light);
+            }
+
+            .availability-premium-page .table thead th {
+                background-color: #f8fafc;
+                border-bottom: 2px solid var(--border-light);
+                color: var(--text-light);
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                padding: 1.25rem 1.5rem;
+            }
+
+            .availability-premium-page .table td {
+                padding: 1.25rem 1.5rem;
+                vertical-align: middle;
+            }
+
+            .availability-premium-page .btn-primary {
+                background-color: var(--primary);
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 12px;
+                font-weight: 700;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            }
+
+            .availability-premium-page .btn-primary:hover {
+                background-color: var(--primary-dark);
+                transform: translateY(-1px);
+                box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+            }
+
+            .availability-premium-page .btn-outline-primary,
+            .availability-premium-page .btn-outline-danger,
+            .availability-premium-page .btn-outline-success,
+            .availability-premium-page .btn-outline-info {
+                border-radius: 10px;
+                padding: 0.6rem 1.2rem;
+                font-weight: 600;
+                border-width: 1.5px;
+            }
+
+            .availability-premium-page .status-badge {
+                padding: 6px 12px;
+                border-radius: 99px;
+                font-weight: 700;
+                font-size: 0.75rem;
+            }
+
+            .availability-premium-page .modal-content {
+                border-radius: 24px;
+                border: none;
+                box-shadow: var(--shadow-lg);
+            }
+
+            .availability-premium-page .modal-header {
+                border-bottom: 1px solid var(--border-light);
+                padding: 1.5rem 2rem;
+            }
+
+            .availability-premium-page .modal-footer {
+                border-top: 1px solid var(--border-light);
+                padding: 1.5rem 2rem;
+            }
+
+            .availability-premium-page .form-label {
+                font-weight: 600;
+                color: var(--text-main);
+            }
+
+            .availability-premium-page .form-control,
+            .availability-premium-page .form-select {
+                border-radius: 12px;
+                border: 1.5px solid var(--border);
+                padding: 0.8rem 1.2rem;
+            }
+
+            .availability-premium-page .form-control:focus,
+            .availability-premium-page .form-select:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+            }
+        `}</style>
+
+        </>
     );
 };
 

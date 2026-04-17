@@ -302,7 +302,7 @@ const Profile = () => {
     };
 
     const getVerificationBadge = (status) => {
-        switch(status?.toLowerCase()) {
+        switch (status?.toLowerCase()) {
             case 'verified':
                 return <Badge bg="success" className="d-flex align-items-center gap-1"><CheckCircle size={14} /> Verified</Badge>;
             case 'pending':
@@ -316,7 +316,7 @@ const Profile = () => {
 
     if (loading) {
         return (
-            <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+            <Container fluid className="py-4 profile-premium-page">
                 <div className="text-center py-5">
                     <Spinner animation="border" variant="primary" />
                     <p className="mt-3">Loading profile...</p>
@@ -326,488 +326,581 @@ const Profile = () => {
     }
 
     return (
-        <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-            <ToastContainer position="top-end" className="p-3">
-                <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
-                    <Toast.Header>
-                        <strong className="me-auto">
-                            {toastVariant === 'success' && <CheckCircle size={18} />}
-                            {toastVariant === 'danger' && <XCircle size={18} />}
-                        </strong>
-                    </Toast.Header>
-                    <Toast.Body>{toastMessage}</Toast.Body>
-                </Toast>
-            </ToastContainer>
+        <>
+            <Container fluid className="py-4 profile-premium-page">
+                <ToastContainer position="top-end" className="p-3">
+                    <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
+                        <Toast.Header>
+                            <strong className="me-auto">
+                                {toastVariant === 'success' && <CheckCircle size={18} />}
+                                {toastVariant === 'danger' && <XCircle size={18} />}
+                            </strong>
+                        </Toast.Header>
+                        <Toast.Body>{toastMessage}</Toast.Body>
+                    </Toast>
+                </ToastContainer>
 
-            {/* Profile Header */}
-            <Row className="mb-4">
-                <Col>
-                    <Card className="shadow-sm border-0 overflow-hidden">
-                        <div style={{ height: '150px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}></div>
-                        <Card.Body className="pt-0">
-                            <div className="d-flex flex-column flex-md-row align-items-md-end justify-content-between">
-                                <div className="d-flex align-items-end mt-n5">
-                                    <div className="position-relative">
-                                        {photoPreview ? (
-                                            <Image
-                                                src={photoPreview}
-                                                roundedCircle
-                                                style={{
-                                                    width: '120px',
-                                                    height: '120px',
-                                                    objectFit: 'cover',
-                                                    border: '4px solid white',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                                                }}
-                                            />
-                                        ) : (
-                                            <div
-                                                style={{
-                                                    width: '120px',
-                                                    height: '120px',
-                                                    borderRadius: '50%',
-                                                    background: '#c7d2fe',
-                                                    border: '4px solid white',
-                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
-                                                }}
+                {/* Profile Header */}
+                <Row className="mb-4">
+                    <Col>
+                        <Card className="shadow-sm border-0 overflow-hidden">
+                            <div style={{ height: '150px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}></div>
+                            <Card.Body className="pt-0">
+                                <div className="d-flex flex-column flex-md-row align-items-md-end justify-content-between">
+                                    <div className="d-flex align-items-end mt-n5">
+                                        <div className="position-relative">
+                                            {photoPreview ? (
+                                                <Image
+                                                    src={photoPreview}
+                                                    roundedCircle
+                                                    style={{
+                                                        width: '120px',
+                                                        height: '120px',
+                                                        objectFit: 'cover',
+                                                        border: '4px solid white',
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div
+                                                    style={{
+                                                        width: '120px',
+                                                        height: '120px',
+                                                        borderRadius: '50%',
+                                                        background: '#c7d2fe',
+                                                        border: '4px solid white',
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
+                                                    }}
+                                                >
+                                                    <User size={50} className="text-primary" />
+                                                </div>
+                                            )}
+                                            <Button
+                                                variant="light"
+                                                size="sm"
+                                                className="position-absolute bottom-0 end-0 rounded-circle p-1"
+                                                onClick={() => fileInputRef.current.click()}
+                                                style={{ border: '2px solid white' }}
                                             >
-                                                <User size={50} className="text-primary" />
+                                                <Camera size={16} />
+                                            </Button>
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                accept="image/*"
+                                                style={{ display: 'none' }}
+                                                onChange={handlePhotoUpload}
+                                            />
+                                        </div>
+                                        <div className="ms-3 mb-2">
+                                            <h2 className="mb-0">{profile.fullName}</h2>
+                                            <div className="d-flex align-items-center gap-2 mt-1">
+                                                <Badge bg="primary">{profile.specialty || "General Physician"}</Badge>
+                                                {getVerificationBadge(profile.verificationStatus)}
                                             </div>
-                                        )}
-                                        <Button
-                                            variant="light"
-                                            size="sm"
-                                            className="position-absolute bottom-0 end-0 rounded-circle p-1"
-                                            onClick={() => fileInputRef.current.click()}
-                                            style={{ border: '2px solid white' }}
-                                        >
-                                            <Camera size={16} />
+                                            <div className="mt-1">
+                                                <small className="text-muted">{profile.email}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 mt-md-0">
+                                        <Button variant="outline-primary" onClick={() => setShowEditModal(true)}>
+                                            <Edit2 size={16} className="me-2" />
+                                            Edit Profile
                                         </Button>
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            style={{ display: 'none' }}
-                                            onChange={handlePhotoUpload}
-                                        />
-                                    </div>
-                                    <div className="ms-3 mb-2">
-                            <h2 className="mb-0">{profile.fullName}</h2>
-                                        <div className="d-flex align-items-center gap-2 mt-1">
-                                            <Badge bg="primary">{profile.specialty || "General Physician"}</Badge>
-                                            {getVerificationBadge(profile.verificationStatus)}
-                                        </div>
-                                        <div className="mt-1">
-                                            <small className="text-muted">{profile.email}</small>
-                                        </div>
                                     </div>
                                 </div>
-                                <div className="mt-3 mt-md-0">
-                                    <Button variant="outline-primary" onClick={() => setShowEditModal(true)}>
-                                        <Edit2 size={16} className="me-2" />
-                                        Edit Profile
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-            {/* Statistics Cards */}
-            <Row className="mb-4">
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Total Patients</h6>
-                                    <h3 className="mb-0 fw-bold">{profile.stats?.totalPatients || 0}</h3>
+                {/* Statistics Cards */}
+                <Row className="mb-4">
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Total Patients</h6>
+                                        <h3 className="mb-0 fw-bold">{profile.stats?.totalPatients || 0}</h3>
+                                    </div>
+                                    <div className="bg-primary bg-opacity-10 rounded p-3">
+                                        <UsersIcon size={24} className="text-primary" />
+                                    </div>
                                 </div>
-                                <div className="bg-primary bg-opacity-10 rounded p-3">
-                                    <UsersIcon size={24} className="text-primary" />
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Experience</h6>
+                                        <h3 className="mb-0 fw-bold">{profile.experience || 0}+ Years</h3>
+                                    </div>
+                                    <div className="bg-success bg-opacity-10 rounded p-3">
+                                        <Briefcase size={24} className="text-success" />
+                                    </div>
                                 </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Experience</h6>
-                                    <h3 className="mb-0 fw-bold">{profile.experience || 0}+ Years</h3>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Satisfaction Rate</h6>
+                                        <h3 className="mb-0 fw-bold">{profile.stats?.satisfactionRate || 0}%</h3>
+                                    </div>
+                                    <div className="bg-warning bg-opacity-10 rounded p-3">
+                                        <Star size={24} className="text-warning" />
+                                    </div>
                                 </div>
-                                <div className="bg-success bg-opacity-10 rounded p-3">
-                                    <Briefcase size={24} className="text-success" />
+                                <ProgressBar now={profile.stats?.satisfactionRate || 0} className="mt-2" variant="warning" />
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6} className="mb-3">
+                        <Card className="shadow-sm border-0 h-100">
+                            <Card.Body>
+                                <div className="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <h6 className="text-muted mb-1">Consultation Fee</h6>
+                                        <h3 className="mb-0 fw-bold">${profile.consultationFee || 0}</h3>
+                                    </div>
+                                    <div className="bg-info bg-opacity-10 rounded p-3">
+                                        <DollarSign size={24} className="text-info" />
+                                    </div>
                                 </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Satisfaction Rate</h6>
-                                    <h3 className="mb-0 fw-bold">{profile.stats?.satisfactionRate || 0}%</h3>
-                                </div>
-                                <div className="bg-warning bg-opacity-10 rounded p-3">
-                                    <Star size={24} className="text-warning" />
-                                </div>
-                            </div>
-                            <ProgressBar now={profile.stats?.satisfactionRate || 0} className="mt-2" variant="warning" />
-                        </Card.Body>
-                    </Card>
-                </Col>
-                <Col lg={3} md={6} className="mb-3">
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body>
-                            <div className="d-flex align-items-center justify-content-between">
-                                <div>
-                                    <h6 className="text-muted mb-1">Consultation Fee</h6>
-                                    <h3 className="mb-0 fw-bold">${profile.consultationFee || 0}</h3>
-                                </div>
-                                <div className="bg-info bg-opacity-10 rounded p-3">
-                                    <DollarSign size={24} className="text-info" />
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-            {/* Main Content Tabs */}
-            <Row>
-                <Col>
-                    <Card className="shadow-sm border-0">
-                        <Card.Body>
-                            <Tabs
-                                activeKey={activeTab}
-                                onSelect={(k) => setActiveTab(k)}
-                                className="mb-4"
-                                fill
-                            >
-                                <Tab eventKey="profile" title="Profile Information">
-                                    <Row className="mt-3">
-                                        <Col lg={6}>
-                                            <Card className="border-0 bg-light mb-4">
-                                                <Card.Body>
-                                                    <h5 className="mb-3">Personal Information</h5>
-                                                    <ListGroup variant="flush">
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Full Name</span>
-                                                            <strong>{profile.fullName}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Email</span>
-                                                            <strong>{profile.email}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Phone</span>
-                                                            <strong>{profile.phone || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Date of Birth</span>
-                                                            <strong>{profile.dateOfBirth || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Gender</span>
-                                                            <strong>{profile.gender || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Address</span>
-                                                            <strong>{profile.address || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                    </ListGroup>
-                                                </Card.Body>
-                                            </Card>
-
-                                            <Card className="border-0 bg-light mb-4">
-                                                <Card.Body>
-                                                    <h5 className="mb-3">Professional Information</h5>
-                                                    <ListGroup variant="flush">
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Specialization</span>
-                                                            <strong>{profile.specialty || "General"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Experience</span>
-                                                            <strong>{profile.experience} years</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Hospital</span>
-                                                            <strong>{profile.hospitalName || "Not specified"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Clinic</span>
-                                                            <strong>{profile.clinicName || "Not specified"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Consultation Fee</span>
-                                                            <strong>${profile.consultationFee}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Emergency Fee</span>
-                                                            <strong>${profile.emergencyFee}</strong>
-                                                        </ListGroup.Item>
-                                                    </ListGroup>
-                                                </Card.Body>
-                                            </Card>
-                                        </Col>
-
-                                        <Col lg={6}>
-                                            <Card className="border-0 bg-light mb-4">
-                                                <Card.Body>
-                                                    <h5 className="mb-3">License & Verification</h5>
-                                                    <ListGroup variant="flush">
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">License Number</span>
-                                                            <strong>{profile.licenseNumber || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">License Expiry</span>
-                                                            <strong>{profile.licenseExpiry || "Not provided"}</strong>
-                                                        </ListGroup.Item>
-                                                        <ListGroup.Item className="bg-light d-flex justify-content-between">
-                                                            <span className="text-muted">Board Certified</span>
-                                                            <strong>{profile.boardCertified ? "Yes" : "No"}</strong>
-                                                        </ListGroup.Item>
-                                                    </ListGroup>
-                                                </Card.Body>
-                                            </Card>
-
-                                            <Card className="border-0 bg-light mb-4">
-                                                <Card.Body>
-                                                    <h5 className="mb-3">Bio</h5>
-                                                    <p>{profile.bio || "No bio provided yet."}</p>
-                                                </Card.Body>
-                                            </Card>
-
-                                            {profile.qualifications && profile.qualifications.length > 0 && (
+                {/* Main Content Tabs */}
+                <Row>
+                    <Col>
+                        <Card className="shadow-sm border-0">
+                            <Card.Body>
+                                <Tabs
+                                    activeKey={activeTab}
+                                    onSelect={(k) => setActiveTab(k)}
+                                    className="mb-4"
+                                    fill
+                                >
+                                    <Tab eventKey="profile" title="Profile Information">
+                                        <Row className="mt-3">
+                                            <Col lg={6}>
                                                 <Card className="border-0 bg-light mb-4">
                                                     <Card.Body>
-                                                        <h5 className="mb-3">Qualifications</h5>
-                                                        {profile.qualifications.map((qual, idx) => (
-                                                            <div key={idx} className="mb-2">
-                                                                <GraduationCap size={16} className="text-primary me-2" />
-                                                                <strong>{qual.degree}</strong> - {qual.institution} ({qual.year})
-                                                            </div>
-                                                        ))}
+                                                        <h5 className="mb-3">Personal Information</h5>
+                                                        <ListGroup variant="flush">
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Full Name</span>
+                                                                <strong>{profile.fullName}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Email</span>
+                                                                <strong>{profile.email}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Phone</span>
+                                                                <strong>{profile.phone || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Date of Birth</span>
+                                                                <strong>{profile.dateOfBirth || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Gender</span>
+                                                                <strong>{profile.gender || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Address</span>
+                                                                <strong>{profile.address || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                        </ListGroup>
                                                     </Card.Body>
                                                 </Card>
-                                            )}
-                                        </Col>
-                                    </Row>
-                                </Tab>
 
-                                <Tab eventKey="schedule" title="Working Hours">
-                                    <div className="table-responsive mt-3">
-                                        <Table className="mb-0">
-                                            <thead className="bg-light">
-                                            <tr>
-                                                <th>Day</th>
-                                                <th>Available</th>
-                                                <th>Start Time</th>
-                                                <th>End Time</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody>
-                                            {profile.workingHours && profile.workingHours.map((day, idx) => (
-                                                <tr key={idx}>
-                                                    <td className="fw-semibold">{day.day}</td>
-                                                    <td>
-                                                        {day.isAvailable ?
-                                                            <Badge bg="success">Available</Badge> :
-                                                            <Badge bg="danger">Closed</Badge>
-                                                        }
-                                                    </td>
-                                                    <td>{day.start || "-"}</td>
-                                                    <td>{day.end || "-"}</td>
-                                                </tr>
-                                            ))}
-                                            </tbody>
-                                        </Table>
-                                    </div>
-                                </Tab>
-                            </Tabs>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+                                                <Card className="border-0 bg-light mb-4">
+                                                    <Card.Body>
+                                                        <h5 className="mb-3">Professional Information</h5>
+                                                        <ListGroup variant="flush">
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Specialization</span>
+                                                                <strong>{profile.specialty || "General"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Experience</span>
+                                                                <strong>{profile.experience} years</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Hospital</span>
+                                                                <strong>{profile.hospitalName || "Not specified"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Clinic</span>
+                                                                <strong>{profile.clinicName || "Not specified"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Consultation Fee</span>
+                                                                <strong>${profile.consultationFee}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Emergency Fee</span>
+                                                                <strong>${profile.emergencyFee}</strong>
+                                                            </ListGroup.Item>
+                                                        </ListGroup>
+                                                    </Card.Body>
+                                                </Card>
+                                            </Col>
 
-            {/* Edit Profile Modal */}
-            <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
-                <Modal.Header closeButton className="bg-primary text-white">
-                    <Modal.Title>Edit Profile</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <h6 className="mb-3">Personal Information</h6>
-                        <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Full Name">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.fullName || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, fullName: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                                            <Col lg={6}>
+                                                <Card className="border-0 bg-light mb-4">
+                                                    <Card.Body>
+                                                        <h5 className="mb-3">License & Verification</h5>
+                                                        <ListGroup variant="flush">
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">License Number</span>
+                                                                <strong>{profile.licenseNumber || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">License Expiry</span>
+                                                                <strong>{profile.licenseExpiry || "Not provided"}</strong>
+                                                            </ListGroup.Item>
+                                                            <ListGroup.Item className="bg-light d-flex justify-content-between">
+                                                                <span className="text-muted">Board Certified</span>
+                                                                <strong>{profile.boardCertified ? "Yes" : "No"}</strong>
+                                                            </ListGroup.Item>
+                                                        </ListGroup>
+                                                    </Card.Body>
+                                                </Card>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Email">
-                                    <Form.Control
-                                        type="email"
-                                        value={editFormData.email || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Phone">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.phone || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                                                <Card className="border-0 bg-light mb-4">
+                                                    <Card.Body>
+                                                        <h5 className="mb-3">Bio</h5>
+                                                        <p>{profile.bio || "No bio provided yet."}</p>
+                                                    </Card.Body>
+                                                </Card>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Date of Birth">
-                                    <Form.Control
-                                        type="date"
-                                        value={editFormData.dateOfBirth || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, dateOfBirth: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Gender">
-                                    <Form.Select
-                                        value={editFormData.gender || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, gender: e.target.value})}
-                                    >
-                                        <option value="">Select</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </Form.Select>
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                                                {profile.qualifications && profile.qualifications.length > 0 && (
+                                                    <Card className="border-0 bg-light mb-4">
+                                                        <Card.Body>
+                                                            <h5 className="mb-3">Qualifications</h5>
+                                                            {profile.qualifications.map((qual, idx) => (
+                                                                <div key={idx} className="mb-2">
+                                                                    <GraduationCap size={16} className="text-primary me-2" />
+                                                                    <strong>{qual.degree}</strong> - {qual.institution} ({qual.year})
+                                                                </div>
+                                                            ))}
+                                                        </Card.Body>
+                                                    </Card>
+                                                )}
+                                            </Col>
+                                        </Row>
+                                    </Tab>
 
-                        <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Address">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.address || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                                    <Tab eventKey="schedule" title="Working Hours">
+                                        <div className="table-responsive mt-3">
+                                            <Table className="mb-0">
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th>Day</th>
+                                                        <th>Available</th>
+                                                        <th>Start Time</th>
+                                                        <th>End Time</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {profile.workingHours && profile.workingHours.map((day, idx) => (
+                                                        <tr key={idx}>
+                                                            <td className="fw-semibold">{day.day}</td>
+                                                            <td>
+                                                                {day.isAvailable ?
+                                                                    <Badge bg="success">Available</Badge> :
+                                                                    <Badge bg="danger">Closed</Badge>
+                                                                }
+                                                            </td>
+                                                            <td>{day.start || "-"}</td>
+                                                            <td>{day.end || "-"}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </Tab>
+                                </Tabs>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
 
-                        <h6 className="mb-3 mt-4">Professional Information</h6>
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Specialization">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.specialty || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, specialty: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Years of Experience">
-                                    <Form.Control
-                                        type="number"
-                                        value={editFormData.experience || 0}
-                                        onChange={(e) => setEditFormData({...editFormData, experience: parseInt(e.target.value) || 0})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                {/* Edit Profile Modal */}
+                <Modal show={showEditModal} onHide={() => setShowEditModal(false)} size="lg">
+                    <Modal.Header closeButton className="bg-primary text-white">
+                        <Modal.Title>Edit Profile</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form>
+                            <h6 className="mb-3">Personal Information</h6>
+                            <Row className="mb-3">
+                                <Col md={12}>
+                                    <FloatingLabel label="Full Name">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.fullName || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Hospital/Clinic Name">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.hospitalName || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, hospitalName: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="Consultation Fee ($)">
-                                    <Form.Control
-                                        type="number"
-                                        value={editFormData.consultationFee || 0}
-                                        onChange={(e) => setEditFormData({...editFormData, consultationFee: parseFloat(e.target.value) || 0})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Email">
+                                        <Form.Control
+                                            type="email"
+                                            value={editFormData.email || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Phone">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.phone || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-                        <Row className="mb-3">
-                            <Col md={6}>
-                                <FloatingLabel label="Emergency Fee ($)">
-                                    <Form.Control
-                                        type="number"
-                                        value={editFormData.emergencyFee || 0}
-                                        onChange={(e) => setEditFormData({...editFormData, emergencyFee: parseFloat(e.target.value) || 0})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                            <Col md={6}>
-                                <FloatingLabel label="License Number">
-                                    <Form.Control
-                                        type="text"
-                                        value={editFormData.licenseNumber || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, licenseNumber: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Date of Birth">
+                                        <Form.Control
+                                            type="date"
+                                            value={editFormData.dateOfBirth || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, dateOfBirth: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Gender">
+                                        <Form.Select
+                                            value={editFormData.gender || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
+                                        >
+                                            <option value="">Select</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </Form.Select>
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
 
-                        <Row className="mb-3">
-                            <Col md={12}>
-                                <FloatingLabel label="Bio">
-                                    <Form.Control
-                                        as="textarea"
-                                        rows={4}
-                                        value={editFormData.bio || ""}
-                                        onChange={(e) => setEditFormData({...editFormData, bio: e.target.value})}
-                                    />
-                                </FloatingLabel>
-                            </Col>
-                        </Row>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowEditModal(false)}>
-                        Cancel
-                    </Button>
-                    <Button variant="primary" onClick={handleProfileUpdate} disabled={saving}>
-                        {saving ? <Spinner size="sm" className="me-2" /> : <Save size={18} className="me-2" />}
-                        {saving ? "Saving..." : "Save Changes"}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
+                            <Row className="mb-3">
+                                <Col md={12}>
+                                    <FloatingLabel label="Address">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.address || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+
+                            <h6 className="mb-3 mt-4">Professional Information</h6>
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Specialization">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.specialty || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, specialty: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Years of Experience">
+                                        <Form.Control
+                                            type="number"
+                                            value={editFormData.experience || 0}
+                                            onChange={(e) => setEditFormData({ ...editFormData, experience: parseInt(e.target.value) || 0 })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Hospital/Clinic Name">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.hospitalName || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, hospitalName: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="Consultation Fee ($)">
+                                        <Form.Control
+                                            type="number"
+                                            value={editFormData.consultationFee || 0}
+                                            onChange={(e) => setEditFormData({ ...editFormData, consultationFee: parseFloat(e.target.value) || 0 })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={6}>
+                                    <FloatingLabel label="Emergency Fee ($)">
+                                        <Form.Control
+                                            type="number"
+                                            value={editFormData.emergencyFee || 0}
+                                            onChange={(e) => setEditFormData({ ...editFormData, emergencyFee: parseFloat(e.target.value) || 0 })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                                <Col md={6}>
+                                    <FloatingLabel label="License Number">
+                                        <Form.Control
+                                            type="text"
+                                            value={editFormData.licenseNumber || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, licenseNumber: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+
+                            <Row className="mb-3">
+                                <Col md={12}>
+                                    <FloatingLabel label="Bio">
+                                        <Form.Control
+                                            as="textarea"
+                                            rows={4}
+                                            value={editFormData.bio || ""}
+                                            onChange={(e) => setEditFormData({ ...editFormData, bio: e.target.value })}
+                                        />
+                                    </FloatingLabel>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowEditModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="primary" onClick={handleProfileUpdate} disabled={saving}>
+                            {saving ? <Spinner size="sm" className="me-2" /> : <Save size={18} className="me-2" />}
+                            {saving ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            </Container>
+
+            <style>{`
+            .profile-premium-page {
+                background-color: var(--bg-main);
+                min-height: 100vh;
+                padding: 2rem;
+            }
+
+            .profile-premium-page .card {
+                border-radius: 24px;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border);
+                overflow: hidden;
+                background-color: #fff;
+            }
+
+            .profile-premium-page .card-body {
+                padding: 2.5rem;
+            }
+
+            .profile-premium-page .nav-tabs {
+                border-bottom: 2px solid var(--border-light);
+                gap: 1.5rem;
+            }
+
+            .profile-premium-page .nav-link {
+                border: none;
+                color: var(--text-muted);
+                font-weight: 600;
+                padding: 1rem 0;
+                border-radius: 0;
+                transition: all 0.2s ease;
+                background: transparent;
+            }
+
+            .profile-premium-page .nav-link:hover {
+                color: var(--primary);
+            }
+
+            .profile-premium-page .nav-link.active {
+                color: var(--primary);
+                border-bottom: 3px solid var(--primary);
+            }
+
+            .profile-premium-page .btn-primary {
+                background-color: var(--primary);
+                border: none;
+                padding: 0.8rem 2rem;
+                border-radius: 12px;
+                font-weight: 700;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            }
+
+            .profile-premium-page .btn-outline-primary {
+                border-radius: 12px;
+                padding: 0.8rem 2rem;
+                font-weight: 600;
+                border: 1.5px solid var(--primary);
+            }
+
+            .profile-premium-page .list-group-item {
+                border-color: var(--border-light);
+                padding: 1rem 0;
+                background-color: transparent !important;
+            }
+
+            .profile-premium-page .modal-content {
+                border-radius: 28px;
+                border: none;
+                box-shadow: var(--shadow-lg);
+            }
+
+            .profile-premium-page .form-control,
+            .profile-premium-page .form-select {
+                border-radius: 12px;
+                border: 1.5px solid var(--border);
+                padding: 0.8rem 1.2rem;
+            }
+
+            .profile-premium-page .stats-value {
+                font-size: 1.75rem;
+                font-weight: 800;
+                color: var(--text-main);
+            }
+
+            .profile-premium-page .stats-label {
+                font-weight: 600;
+                color: var(--text-muted);
+                font-size: 0.875rem;
+            }
+        `}</style>
+        </>
     );
 };
 

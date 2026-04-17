@@ -7,11 +7,24 @@ import ForgotPassword from "./pages/ForgotPassword";
 import OtpVerification from "./pages/OtpVerification";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
-import Doctors from "./pages/Doctors";
-import BookAppointmentPage from "./pages/BookAppointmentPage";
-import Telemedicine from "./pages/Telemedicine";
+import AppointmentsRoute from "./pages/AppointmentsRoute.jsx";
+import SymptomChecker from "./pages/SymptomChecker.jsx";
+
+
+
 import UserManagement from "./pages/UserManagement";
+import Prescriptions from "./pages/Doctor/Prescriptions.jsx";
+import Availability from "./pages/Doctor/Availability.jsx";
+import PatientReport from "./pages/Doctor/PatientReport.jsx";
+import Profile from "./pages/Doctor/Profile.jsx"
+
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import DoctorManagement from "./pages/Admin/DoctorManagement";
+import PatientManagement from "./pages/Admin/PatientManagement";
+import AllAppointments from "./pages/Admin/Allappintments";
+
 import "./styles.css";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function App() {
   return (
@@ -28,10 +41,20 @@ export default function App() {
           {/* Protected Routes */}
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="doctors" element={<Doctors />} />
-            <Route path="appointments" element={<BookAppointmentPage />} />
-            <Route path="telemedicine" element={<Telemedicine />} />
+            <Route path="appointments" element={<AppointmentsRoute />} />
+            <Route path="symptom-checker" element={<SymptomChecker />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="patientreport" element={<PatientReport />} />
+            <Route path="prescriptions" element={<Prescriptions />} />
+            <Route path="availability" element={<Availability />} />
+
             <Route path="users" element={<UserManagement />} />
+
+            {/* Admin Routes */}
+            <Route path="admin/dashboard" element={<AdminDashboard />} />
+            <Route path="admin/doctor-management" element={<DoctorManagement />} />
+            <Route path="admin/patient-management" element={<PatientManagement />} />
+            <Route path="admin/all-appointments" element={<AllAppointments />} />
           </Route>
 
           {/* Fallback */}

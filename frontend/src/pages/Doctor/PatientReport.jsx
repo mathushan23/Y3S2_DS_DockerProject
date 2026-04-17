@@ -291,7 +291,7 @@ const PatientReport = () => {
     };
 
     const getStatusBadge = (status) => {
-        switch(status) {
+        switch (status) {
             case 'COMPLETED':
                 return <Badge bg="success">Completed</Badge>;
             case 'CONFIRMED':
@@ -308,509 +308,600 @@ const PatientReport = () => {
     };
 
     return (
-        <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-            <ToastContainer position="top-end" className="p-3">
-                <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
-                    <Toast.Header>
-                        <strong className="me-auto">
-                            {toastVariant === 'success' && <CheckCircle size={18} />}
-                            {toastVariant === 'danger' && <AlertCircle size={18} />}
-                        </strong>
-                    </Toast.Header>
-                    <Toast.Body>{toastMessage}</Toast.Body>
-                </Toast>
-            </ToastContainer>
+        <>
+            <Container fluid className="py-4 reports-premium-page">
+                <ToastContainer position="top-end" className="p-3">
+                    <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg={toastVariant}>
+                        <Toast.Header>
+                            <strong className="me-auto">
+                                {toastVariant === 'success' && <CheckCircle size={18} />}
+                                {toastVariant === 'danger' && <AlertCircle size={18} />}
+                            </strong>
+                        </Toast.Header>
+                        <Toast.Body>{toastMessage}</Toast.Body>
+                    </Toast>
+                </ToastContainer>
 
-            <Row className="mb-4">
-                <Col>
-                    <Card className="shadow-sm border-0">
-                        <Card.Body className="p-4">
-                            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                                <div>
-                                    <h2 className="mb-1 fw-bold">Patient Reports & Medical History</h2>
-                                    <p className="text-muted mb-0">
-                                        View patient reports, medical records, and appointment history
-                                    </p>
-                                </div>
-                                <div className="d-flex gap-2">
-                                    <Button variant="outline-secondary" onClick={fetchPatients}>
-                                        <RefreshCw size={18} className="me-2" />
-                                        Refresh
-                                    </Button>
-                                    <InputGroup style={{ maxWidth: '300px' }}>
-                                        <InputGroup.Text>
-                                            <Search size={18} />
-                                        </InputGroup.Text>
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Search patients..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </InputGroup>
-                                </div>
-                            </div>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
-
-            {patients.length === 0 && !loading ? (
-                <div className="text-center py-5">
-                    <Alert variant="info">
-                        <AlertCircle size={48} className="mb-3" />
-                        <h5>No Patients Found</h5>
-                        <p>No patient data available. Please ensure the patient service is running with seeded data.</p>
-                    </Alert>
-                </div>
-            ) : (
-                <Row>
-                    {/* Patients List */}
-                    <Col lg={4} className="mb-4">
+                <Row className="mb-4">
+                    <Col>
                         <Card className="shadow-sm border-0">
-                            <Card.Header className="bg-white border-0 pt-4">
-                                <h5 className="mb-0">Patients ({filteredPatients.length})</h5>
-                            </Card.Header>
-                            <Card.Body className="p-0" style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                                <ListGroup variant="flush">
-                                    {filteredPatients.map((patient) => (
-                                        <ListGroup.Item
-                                            key={patient.id}
-                                            action
-                                            active={selectedPatient?.id === patient.id}
-                                            onClick={() => handleSelectPatient(patient)}
-                                            className="p-3"
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <div className="fw-semibold">{patient.name}</div>
-                                                    <small className="text-muted">
-                                                        {patient.age} yrs • {patient.gender} • {patient.bloodType}
-                                                    </small>
-                                                    <div className="mt-1">
-                                                        <small className="text-muted">
-                                                            Last Visit: {formatDate(patient.lastVisit)}
-                                                        </small>
-                                                    </div>
-                                                </div>
-                                                <ChevronRight size={18} className="text-muted" />
-                                            </div>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
+                            <Card.Body className="p-4">
+                                <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div>
+                                        <h2 className="mb-1 fw-bold">Patient Reports & Medical History</h2>
+                                        <p className="text-muted mb-0">
+                                            View patient reports, medical records, and appointment history
+                                        </p>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <Button variant="outline-secondary" onClick={fetchPatients}>
+                                            <RefreshCw size={18} className="me-2" />
+                                            Refresh
+                                        </Button>
+                                        <InputGroup style={{ maxWidth: '300px' }}>
+                                            <InputGroup.Text>
+                                                <Search size={18} />
+                                            </InputGroup.Text>
+                                            <Form.Control
+                                                type="text"
+                                                placeholder="Search patients..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                            />
+                                        </InputGroup>
+                                    </div>
+                                </div>
                             </Card.Body>
                         </Card>
                     </Col>
+                </Row>
 
-                    {/* Patient Details */}
-                    <Col lg={8}>
-                        {selectedPatient ? (
+                {patients.length === 0 && !loading ? (
+                    <div className="text-center py-5">
+                        <Alert variant="info">
+                            <AlertCircle size={48} className="mb-3" />
+                            <h5>No Patients Found</h5>
+                            <p>No patient data available. Please ensure the patient service is running with seeded data.</p>
+                        </Alert>
+                    </div>
+                ) : (
+                    <Row>
+                        {/* Patients List */}
+                        <Col lg={4} className="mb-4">
                             <Card className="shadow-sm border-0">
                                 <Card.Header className="bg-white border-0 pt-4">
-                                    <div className="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h4 className="mb-1">{selectedPatient.name}</h4>
-                                            <div className="d-flex gap-3 flex-wrap">
-                                                <small className="text-muted">
-                                                    <User size={14} className="me-1" />
-                                                    {selectedPatient.age} years, {selectedPatient.gender}
-                                                </small>
-                                                <small className="text-muted">
-                                                    <Droplet size={14} className="me-1" />
-                                                    Blood Type: {selectedPatient.bloodType}
-                                                </small>
-                                                <small className="text-muted">
-                                                    <Mail size={14} className="me-1" />
-                                                    {selectedPatient.email}
-                                                </small>
-                                                <small className="text-muted">
-                                                    <Phone size={14} className="me-1" />
-                                                    {selectedPatient.phone}
-                                                </small>
-                                            </div>
-                                        </div>
-                                        <Button variant="outline-primary" size="sm">
-                                            <MessageCircle size={16} className="me-1" />
-                                            Contact
-                                        </Button>
-                                    </div>
+                                    <h5 className="mb-0">Patients ({filteredPatients.length})</h5>
                                 </Card.Header>
-                                <Card.Body>
-                                    <Tabs
-                                        activeKey={activeTab}
-                                        onSelect={(k) => setActiveTab(k)}
-                                        className="mb-3"
-                                    >
-                                        <Tab eventKey="reports" title={`Reports (${patientReports.length})`} />
-                                        <Tab eventKey="appointments" title={`Appointments (${patientAppointments.length})`} />
-                                        <Tab eventKey="prescriptions" title={`Prescriptions (${patientPrescriptions.length})`} />
-                                        <Tab eventKey="medical-history" title="Medical History" />
-                                    </Tabs>
+                                <Card.Body className="p-0" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                    <ListGroup variant="flush">
+                                        {filteredPatients.map((patient) => (
+                                            <ListGroup.Item
+                                                key={patient.id}
+                                                action
+                                                active={selectedPatient?.id === patient.id}
+                                                onClick={() => handleSelectPatient(patient)}
+                                                className="p-3"
+                                                style={{ cursor: 'pointer' }}
+                                            >
+                                                <div className="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <div className="fw-semibold">{patient.name}</div>
+                                                        <small className="text-muted">
+                                                            {patient.age} yrs • {patient.gender} • {patient.bloodType}
+                                                        </small>
+                                                        <div className="mt-1">
+                                                            <small className="text-muted">
+                                                                Last Visit: {formatDate(patient.lastVisit)}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <ChevronRight size={18} className="text-muted" />
+                                                </div>
+                                            </ListGroup.Item>
+                                        ))}
+                                    </ListGroup>
+                                </Card.Body>
+                            </Card>
+                        </Col>
 
-                                    {/* Reports Tab */}
-                                    {activeTab === 'reports' && (
-                                        <>
-                                            {loading ? (
-                                                <div className="text-center py-5">
-                                                    <Spinner animation="border" variant="primary" />
-                                                    <p className="mt-3">Loading reports...</p>
+                        {/* Patient Details */}
+                        <Col lg={8}>
+                            {selectedPatient ? (
+                                <Card className="shadow-sm border-0">
+                                    <Card.Header className="bg-white border-0 pt-4">
+                                        <div className="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h4 className="mb-1">{selectedPatient.name}</h4>
+                                                <div className="d-flex gap-3 flex-wrap">
+                                                    <small className="text-muted">
+                                                        <User size={14} className="me-1" />
+                                                        {selectedPatient.age} years, {selectedPatient.gender}
+                                                    </small>
+                                                    <small className="text-muted">
+                                                        <Droplet size={14} className="me-1" />
+                                                        Blood Type: {selectedPatient.bloodType}
+                                                    </small>
+                                                    <small className="text-muted">
+                                                        <Mail size={14} className="me-1" />
+                                                        {selectedPatient.email}
+                                                    </small>
+                                                    <small className="text-muted">
+                                                        <Phone size={14} className="me-1" />
+                                                        {selectedPatient.phone}
+                                                    </small>
                                                 </div>
-                                            ) : patientReports.length === 0 ? (
-                                                <div className="text-center py-5">
-                                                    <FileText size={48} className="text-muted mb-3" />
-                                                    <h6>No Reports Available</h6>
-                                                    <p className="text-muted">No medical reports found for this patient</p>
-                                                </div>
-                                            ) : (
-                                                <div className="table-responsive">
-                                                    <Table hover>
-                                                        <thead className="bg-light">
-                                                        <tr>
-                                                            <th>Title</th>
-                                                            <th>Type</th>
-                                                            <th>Date</th>
-                                                            <th>Doctor</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {patientReports.map((report) => (
-                                                            <tr key={report.id}>
-                                                                <td>
-                                                                    <div className="fw-semibold">{report.title}</div>
-                                                                    <small className="text-muted">{report.description}</small>
-                                                                </td>
-                                                                <td>
-                                                                    <Badge bg="info">{report.type}</Badge>
-                                                                </td>
-                                                                <td>{formatDate(report.date)}</td>
-                                                                <td>{report.doctor}</td>
-                                                                <td>
-                                                                    <div className="d-flex gap-2">
-                                                                        <Button
-                                                                            variant="outline-primary"
-                                                                            size="sm"
-                                                                            onClick={() => handleViewReport(report)}
-                                                                        >
-                                                                            <Eye size={16} />
-                                                                        </Button>
-                                                                        <Button
-                                                                            variant="outline-success"
-                                                                            size="sm"
-                                                                            onClick={() => handleDownloadReport(report)}
-                                                                        >
-                                                                            <Download size={16} />
-                                                                        </Button>
+                                            </div>
+                                            <Button variant="outline-primary" size="sm">
+                                                <MessageCircle size={16} className="me-1" />
+                                                Contact
+                                            </Button>
+                                        </div>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        <Tabs
+                                            activeKey={activeTab}
+                                            onSelect={(k) => setActiveTab(k)}
+                                            className="mb-3"
+                                        >
+                                            <Tab eventKey="reports" title={`Reports (${patientReports.length})`} />
+                                            <Tab eventKey="appointments" title={`Appointments (${patientAppointments.length})`} />
+                                            <Tab eventKey="prescriptions" title={`Prescriptions (${patientPrescriptions.length})`} />
+                                            <Tab eventKey="medical-history" title="Medical History" />
+                                        </Tabs>
+
+                                        {/* Reports Tab */}
+                                        {activeTab === 'reports' && (
+                                            <>
+                                                {loading ? (
+                                                    <div className="text-center py-5">
+                                                        <Spinner animation="border" variant="primary" />
+                                                        <p className="mt-3">Loading reports...</p>
+                                                    </div>
+                                                ) : patientReports.length === 0 ? (
+                                                    <div className="text-center py-5">
+                                                        <FileText size={48} className="text-muted mb-3" />
+                                                        <h6>No Reports Available</h6>
+                                                        <p className="text-muted">No medical reports found for this patient</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="table-responsive">
+                                                        <Table hover>
+                                                            <thead className="bg-light">
+                                                                <tr>
+                                                                    <th>Title</th>
+                                                                    <th>Type</th>
+                                                                    <th>Date</th>
+                                                                    <th>Doctor</th>
+                                                                    <th>Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {patientReports.map((report) => (
+                                                                    <tr key={report.id}>
+                                                                        <td>
+                                                                            <div className="fw-semibold">{report.title}</div>
+                                                                            <small className="text-muted">{report.description}</small>
+                                                                        </td>
+                                                                        <td>
+                                                                            <Badge bg="info">{report.type}</Badge>
+                                                                        </td>
+                                                                        <td>{formatDate(report.date)}</td>
+                                                                        <td>{report.doctor}</td>
+                                                                        <td>
+                                                                            <div className="d-flex gap-2">
+                                                                                <Button
+                                                                                    variant="outline-primary"
+                                                                                    size="sm"
+                                                                                    onClick={() => handleViewReport(report)}
+                                                                                >
+                                                                                    <Eye size={16} />
+                                                                                </Button>
+                                                                                <Button
+                                                                                    variant="outline-success"
+                                                                                    size="sm"
+                                                                                    onClick={() => handleDownloadReport(report)}
+                                                                                >
+                                                                                    <Download size={16} />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {/* Appointments Tab */}
+                                        {activeTab === 'appointments' && (
+                                            <>
+                                                {loading ? (
+                                                    <div className="text-center py-5">
+                                                        <Spinner animation="border" variant="primary" />
+                                                        <p className="mt-3">Loading appointments...</p>
+                                                    </div>
+                                                ) : patientAppointments.length === 0 ? (
+                                                    <div className="text-center py-5">
+                                                        <Calendar size={48} className="text-muted mb-3" />
+                                                        <h6>No Appointments Found</h6>
+                                                        <p className="text-muted">No appointment history for this patient</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="table-responsive">
+                                                        <Table hover>
+                                                            <thead className="bg-light">
+                                                                <tr>
+                                                                    <th>Date</th>
+                                                                    <th>Time</th>
+                                                                    <th>Doctor</th>
+                                                                    <th>Diagnosis</th>
+                                                                    <th>Status</th>
+                                                                    <th>Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {patientAppointments.map((appointment) => (
+                                                                    <tr key={appointment.id}>
+                                                                        <td>{formatDate(appointment.date)}</td>
+                                                                        <td>{appointment.time}</td>
+                                                                        <td>{appointment.doctorName}</td>
+                                                                        <td>{appointment.diagnosis}</td>
+                                                                        <td>{getStatusBadge(appointment.status)}</td>
+                                                                        <td>
+                                                                            <Button
+                                                                                variant="outline-info"
+                                                                                size="sm"
+                                                                                onClick={() => handleViewMedicalHistory(appointment)}
+                                                                            >
+                                                                                View Details
+                                                                            </Button>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {/* Prescriptions Tab */}
+                                        {activeTab === 'prescriptions' && (
+                                            <>
+                                                {loading ? (
+                                                    <div className="text-center py-5">
+                                                        <Spinner animation="border" variant="primary" />
+                                                        <p className="mt-3">Loading prescriptions...</p>
+                                                    </div>
+                                                ) : patientPrescriptions.length === 0 ? (
+                                                    <div className="text-center py-5">
+                                                        <Pill size={48} className="text-muted mb-3" />
+                                                        <h6>No Prescriptions Found</h6>
+                                                        <p className="text-muted">No prescriptions for this patient</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="table-responsive">
+                                                        <Table hover>
+                                                            <thead className="bg-light">
+                                                                <tr>
+                                                                    <th>Date</th>
+                                                                    <th>Diagnosis</th>
+                                                                    <th>Doctor</th>
+                                                                    <th>Status</th>
+                                                                    <th>Refills</th>
+                                                                    <th>Valid Until</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {patientPrescriptions.map((prescription) => (
+                                                                    <tr key={prescription.id}>
+                                                                        <td>{formatDate(prescription.createdAt)}</td>
+                                                                        <td>{prescription.diagnosis}</td>
+                                                                        <td>{prescription.doctorName}</td>
+                                                                        <td>{getStatusBadge(prescription.status)}</td>
+                                                                        <td>{prescription.refills}</td>
+                                                                        <td>{prescription.validUntil || "N/A"}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {/* Medical History Tab */}
+                                        {activeTab === 'medical-history' && (
+                                            <Row>
+                                                <Col md={6} className="mb-3">
+                                                    <Card className="border-0 bg-light h-100">
+                                                        <Card.Body>
+                                                            <h6 className="fw-bold mb-3">Chronic Conditions</h6>
+                                                            {selectedPatient.medicalHistory.chronicConditions.length > 0 ? (
+                                                                selectedPatient.medicalHistory.chronicConditions.map((condition, idx) => (
+                                                                    <div key={idx} className="mb-2">
+                                                                        <Activity size={16} className="text-danger me-2" />
+                                                                        {condition}
                                                                     </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                        </tbody>
-                                                    </Table>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                                                ))
+                                                            ) : (
+                                                                <p className="text-muted">No chronic conditions recorded</p>
+                                                            )}
+                                                        </Card.Body>
+                                                    </Card>
+                                                </Col>
+                                                <Col md={6} className="mb-3">
+                                                    <Card className="border-0 bg-light h-100">
+                                                        <Card.Body>
+                                                            <h6 className="fw-bold mb-3">Allergies</h6>
+                                                            {selectedPatient.medicalHistory.allergies.length > 0 ? (
+                                                                selectedPatient.medicalHistory.allergies.map((allergy, idx) => (
+                                                                    <div key={idx} className="mb-2">
+                                                                        <AlertCircle size={16} className="text-warning me-2" />
+                                                                        {allergy}
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <p className="text-muted">No allergies recorded</p>
+                                                            )}
+                                                        </Card.Body>
+                                                    </Card>
+                                                </Col>
+                                                <Col md={12}>
+                                                    <Card className="border-0 bg-light">
+                                                        <Card.Body>
+                                                            <h6 className="fw-bold mb-3">Lifestyle</h6>
+                                                            <Row>
+                                                                <Col md={3}>
+                                                                    <div className="mb-2">
+                                                                        <strong>Smoking:</strong> {selectedPatient.medicalHistory.lifestyle?.smoking || "Not specified"}
+                                                                    </div>
+                                                                </Col>
+                                                                <Col md={3}>
+                                                                    <div className="mb-2">
+                                                                        <strong>Alcohol:</strong> {selectedPatient.medicalHistory.lifestyle?.alcohol || "Not specified"}
+                                                                    </div>
+                                                                </Col>
+                                                                <Col md={3}>
+                                                                    <div className="mb-2">
+                                                                        <strong>Exercise:</strong> {selectedPatient.medicalHistory.lifestyle?.exercise || "Not specified"}
+                                                                    </div>
+                                                                </Col>
+                                                                <Col md={3}>
+                                                                    <div className="mb-2">
+                                                                        <strong>Diet:</strong> {selectedPatient.medicalHistory.lifestyle?.diet || "Not specified"}
+                                                                    </div>
+                                                                </Col>
+                                                            </Row>
+                                                        </Card.Body>
+                                                    </Card>
+                                                </Col>
+                                            </Row>
+                                        )}
+                                    </Card.Body>
+                                </Card>
+                            ) : (
+                                <Card className="shadow-sm border-0">
+                                    <Card.Body className="text-center py-5">
+                                        <User size={64} className="text-muted mb-3" />
+                                        <h5>Select a Patient</h5>
+                                        <p className="text-muted">
+                                            Choose a patient from the list to view their reports and medical history
+                                        </p>
+                                    </Card.Body>
+                                </Card>
+                            )}
+                        </Col>
+                    </Row>
+                )}
 
-                                    {/* Appointments Tab */}
-                                    {activeTab === 'appointments' && (
-                                        <>
-                                            {loading ? (
-                                                <div className="text-center py-5">
-                                                    <Spinner animation="border" variant="primary" />
-                                                    <p className="mt-3">Loading appointments...</p>
-                                                </div>
-                                            ) : patientAppointments.length === 0 ? (
-                                                <div className="text-center py-5">
-                                                    <Calendar size={48} className="text-muted mb-3" />
-                                                    <h6>No Appointments Found</h6>
-                                                    <p className="text-muted">No appointment history for this patient</p>
-                                                </div>
-                                            ) : (
-                                                <div className="table-responsive">
-                                                    <Table hover>
-                                                        <thead className="bg-light">
-                                                        <tr>
-                                                            <th>Date</th>
-                                                            <th>Time</th>
-                                                            <th>Doctor</th>
-                                                            <th>Diagnosis</th>
-                                                            <th>Status</th>
-                                                            <th>Actions</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {patientAppointments.map((appointment) => (
-                                                            <tr key={appointment.id}>
-                                                                <td>{formatDate(appointment.date)}</td>
-                                                                <td>{appointment.time}</td>
-                                                                <td>{appointment.doctorName}</td>
-                                                                <td>{appointment.diagnosis}</td>
-                                                                <td>{getStatusBadge(appointment.status)}</td>
-                                                                <td>
-                                                                    <Button
-                                                                        variant="outline-info"
-                                                                        size="sm"
-                                                                        onClick={() => handleViewMedicalHistory(appointment)}
-                                                                    >
-                                                                        View Details
-                                                                    </Button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                        </tbody>
-                                                    </Table>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-
-                                    {/* Prescriptions Tab */}
-                                    {activeTab === 'prescriptions' && (
-                                        <>
-                                            {loading ? (
-                                                <div className="text-center py-5">
-                                                    <Spinner animation="border" variant="primary" />
-                                                    <p className="mt-3">Loading prescriptions...</p>
-                                                </div>
-                                            ) : patientPrescriptions.length === 0 ? (
-                                                <div className="text-center py-5">
-                                                    <Pill size={48} className="text-muted mb-3" />
-                                                    <h6>No Prescriptions Found</h6>
-                                                    <p className="text-muted">No prescriptions for this patient</p>
-                                                </div>
-                                            ) : (
-                                                <div className="table-responsive">
-                                                    <Table hover>
-                                                        <thead className="bg-light">
-                                                        <tr>
-                                                            <th>Date</th>
-                                                            <th>Diagnosis</th>
-                                                            <th>Doctor</th>
-                                                            <th>Status</th>
-                                                            <th>Refills</th>
-                                                            <th>Valid Until</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        {patientPrescriptions.map((prescription) => (
-                                                            <tr key={prescription.id}>
-                                                                <td>{formatDate(prescription.createdAt)}</td>
-                                                                <td>{prescription.diagnosis}</td>
-                                                                <td>{prescription.doctorName}</td>
-                                                                <td>{getStatusBadge(prescription.status)}</td>
-                                                                <td>{prescription.refills}</td>
-                                                                <td>{prescription.validUntil || "N/A"}</td>
-                                                            </tr>
-                                                        ))}
-                                                        </tbody>
-                                                    </Table>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-
-                                    {/* Medical History Tab */}
-                                    {activeTab === 'medical-history' && (
-                                        <Row>
-                                            <Col md={6} className="mb-3">
-                                                <Card className="border-0 bg-light h-100">
-                                                    <Card.Body>
-                                                        <h6 className="fw-bold mb-3">Chronic Conditions</h6>
-                                                        {selectedPatient.medicalHistory.chronicConditions.length > 0 ? (
-                                                            selectedPatient.medicalHistory.chronicConditions.map((condition, idx) => (
-                                                                <div key={idx} className="mb-2">
-                                                                    <Activity size={16} className="text-danger me-2" />
-                                                                    {condition}
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <p className="text-muted">No chronic conditions recorded</p>
-                                                        )}
-                                                    </Card.Body>
-                                                </Card>
-                                            </Col>
-                                            <Col md={6} className="mb-3">
-                                                <Card className="border-0 bg-light h-100">
-                                                    <Card.Body>
-                                                        <h6 className="fw-bold mb-3">Allergies</h6>
-                                                        {selectedPatient.medicalHistory.allergies.length > 0 ? (
-                                                            selectedPatient.medicalHistory.allergies.map((allergy, idx) => (
-                                                                <div key={idx} className="mb-2">
-                                                                    <AlertCircle size={16} className="text-warning me-2" />
-                                                                    {allergy}
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <p className="text-muted">No allergies recorded</p>
-                                                        )}
-                                                    </Card.Body>
-                                                </Card>
-                                            </Col>
-                                            <Col md={12}>
-                                                <Card className="border-0 bg-light">
-                                                    <Card.Body>
-                                                        <h6 className="fw-bold mb-3">Lifestyle</h6>
-                                                        <Row>
-                                                            <Col md={3}>
-                                                                <div className="mb-2">
-                                                                    <strong>Smoking:</strong> {selectedPatient.medicalHistory.lifestyle?.smoking || "Not specified"}
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={3}>
-                                                                <div className="mb-2">
-                                                                    <strong>Alcohol:</strong> {selectedPatient.medicalHistory.lifestyle?.alcohol || "Not specified"}
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={3}>
-                                                                <div className="mb-2">
-                                                                    <strong>Exercise:</strong> {selectedPatient.medicalHistory.lifestyle?.exercise || "Not specified"}
-                                                                </div>
-                                                            </Col>
-                                                            <Col md={3}>
-                                                                <div className="mb-2">
-                                                                    <strong>Diet:</strong> {selectedPatient.medicalHistory.lifestyle?.diet || "Not specified"}
-                                                                </div>
-                                                            </Col>
-                                                        </Row>
-                                                    </Card.Body>
-                                                </Card>
-                                            </Col>
-                                        </Row>
-                                    )}
-                                </Card.Body>
-                            </Card>
-                        ) : (
-                            <Card className="shadow-sm border-0">
-                                <Card.Body className="text-center py-5">
-                                    <User size={64} className="text-muted mb-3" />
-                                    <h5>Select a Patient</h5>
-                                    <p className="text-muted">
-                                        Choose a patient from the list to view their reports and medical history
-                                    </p>
-                                </Card.Body>
-                            </Card>
+                {/* Report View Modal */}
+                <Modal show={showReportModal} onHide={() => setShowReportModal(false)} size="lg">
+                    <Modal.Header closeButton className="bg-primary text-white">
+                        <Modal.Title>{selectedReport?.title}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {selectedReport && (
+                            <>
+                                <div className="mb-3">
+                                    <Row>
+                                        <Col md={6}>
+                                            <small className="text-muted">Report Type</small>
+                                            <div>{selectedReport.type}</div>
+                                        </Col>
+                                        <Col md={6}>
+                                            <small className="text-muted">Date</small>
+                                            <div>{formatDate(selectedReport.date)}</div>
+                                        </Col>
+                                        <Col md={6}>
+                                            <small className="text-muted">Doctor</small>
+                                            <div>{selectedReport.doctor}</div>
+                                        </Col>
+                                    </Row>
+                                </div>
+                                <hr />
+                                <div className="mb-3">
+                                    <h6>Description</h6>
+                                    <p>{selectedReport.description}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <h6>Findings</h6>
+                                    <p>{selectedReport.findings}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <h6>Recommendations</h6>
+                                    <p>{selectedReport.recommendations}</p>
+                                </div>
+                                {selectedReport.medicines && selectedReport.medicines.length > 0 && (
+                                    <>
+                                        <h6>Medicines Prescribed</h6>
+                                        <Table size="sm">
+                                            <thead>
+                                                <tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Duration</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                {selectedReport.medicines.map((med, idx) => (
+                                                    <tr key={idx}>
+                                                        <td>{med.name}</td>
+                                                        <td>{med.dosage}</td>
+                                                        <td>{med.frequency}</td>
+                                                        <td>{med.duration}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </>
+                                )}
+                            </>
                         )}
-                    </Col>
-                </Row>
-            )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowReportModal(false)}>Close</Button>
+                        <Button variant="primary" onClick={() => handleDownloadReport(selectedReport)}>
+                            <Download size={16} className="me-2" /> Download
+                        </Button>
+                        <Button variant="info" onClick={handlePrintReport}>
+                            <Printer size={16} className="me-2" /> Print
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
 
-            {/* Report View Modal */}
-            <Modal show={showReportModal} onHide={() => setShowReportModal(false)} size="lg">
-                <Modal.Header closeButton className="bg-primary text-white">
-                    <Modal.Title>{selectedReport?.title}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedReport && (
-                        <>
-                            <div className="mb-3">
+                {/* Medical History Modal */}
+                <Modal show={showMedicalHistoryModal} onHide={() => setShowMedicalHistoryModal(false)} size="lg">
+                    <Modal.Header closeButton className="bg-info text-white">
+                        <Modal.Title>Appointment Details - {selectedAppointment?.patientName}</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {selectedAppointment && selectedPatient && (
+                            <>
+                                <Alert variant="info">
+                                    <strong>Appointment Details:</strong> {formatDate(selectedAppointment.date)} at {selectedAppointment.time}<br />
+                                    <strong>Diagnosis:</strong> {selectedAppointment.diagnosis}<br />
+                                    <strong>Doctor's Notes:</strong> {selectedAppointment.notes}
+                                </Alert>
+                                <h6 className="mt-3 mb-3">Medical History</h6>
                                 <Row>
                                     <Col md={6}>
-                                        <small className="text-muted">Report Type</small>
-                                        <div>{selectedReport.type}</div>
+                                        <Card className="border-0 bg-light mb-3">
+                                            <Card.Body>
+                                                <h6 className="fw-bold">Chronic Conditions</h6>
+                                                {selectedPatient.medicalHistory.chronicConditions.map((condition, idx) => (
+                                                    <div key={idx}>• {condition}</div>
+                                                ))}
+                                            </Card.Body>
+                                        </Card>
                                     </Col>
                                     <Col md={6}>
-                                        <small className="text-muted">Date</small>
-                                        <div>{formatDate(selectedReport.date)}</div>
-                                    </Col>
-                                    <Col md={6}>
-                                        <small className="text-muted">Doctor</small>
-                                        <div>{selectedReport.doctor}</div>
+                                        <Card className="border-0 bg-light mb-3">
+                                            <Card.Body>
+                                                <h6 className="fw-bold">Allergies</h6>
+                                                {selectedPatient.medicalHistory.allergies.map((allergy, idx) => (
+                                                    <div key={idx}>• {allergy}</div>
+                                                ))}
+                                            </Card.Body>
+                                        </Card>
                                     </Col>
                                 </Row>
-                            </div>
-                            <hr />
-                            <div className="mb-3">
-                                <h6>Description</h6>
-                                <p>{selectedReport.description}</p>
-                            </div>
-                            <div className="mb-3">
-                                <h6>Findings</h6>
-                                <p>{selectedReport.findings}</p>
-                            </div>
-                            <div className="mb-3">
-                                <h6>Recommendations</h6>
-                                <p>{selectedReport.recommendations}</p>
-                            </div>
-                            {selectedReport.medicines && selectedReport.medicines.length > 0 && (
-                                <>
-                                    <h6>Medicines Prescribed</h6>
-                                    <Table size="sm">
-                                        <thead>
-                                        <tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Duration</th></tr>
-                                        </thead>
-                                        <tbody>
-                                        {selectedReport.medicines.map((med, idx) => (
-                                            <tr key={idx}>
-                                                <td>{med.name}</td>
-                                                <td>{med.dosage}</td>
-                                                <td>{med.frequency}</td>
-                                                <td>{med.duration}</td>
-                                            </tr>
-                                        ))}
-                                        </tbody>
-                                    </Table>
-                                </>
-                            )}
-                        </>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowReportModal(false)}>Close</Button>
-                    <Button variant="primary" onClick={() => handleDownloadReport(selectedReport)}>
-                        <Download size={16} className="me-2" /> Download
-                    </Button>
-                    <Button variant="info" onClick={handlePrintReport}>
-                        <Printer size={16} className="me-2" /> Print
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+                            </>
+                        )}
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowMedicalHistoryModal(false)}>Close</Button>
+                    </Modal.Footer>
+                </Modal>
+            </Container>
 
-            {/* Medical History Modal */}
-            <Modal show={showMedicalHistoryModal} onHide={() => setShowMedicalHistoryModal(false)} size="lg">
-                <Modal.Header closeButton className="bg-info text-white">
-                    <Modal.Title>Appointment Details - {selectedAppointment?.patientName}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    {selectedAppointment && selectedPatient && (
-                        <>
-                            <Alert variant="info">
-                                <strong>Appointment Details:</strong> {formatDate(selectedAppointment.date)} at {selectedAppointment.time}<br />
-                                <strong>Diagnosis:</strong> {selectedAppointment.diagnosis}<br />
-                                <strong>Doctor's Notes:</strong> {selectedAppointment.notes}
-                            </Alert>
-                            <h6 className="mt-3 mb-3">Medical History</h6>
-                            <Row>
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light mb-3">
-                                        <Card.Body>
-                                            <h6 className="fw-bold">Chronic Conditions</h6>
-                                            {selectedPatient.medicalHistory.chronicConditions.map((condition, idx) => (
-                                                <div key={idx}>• {condition}</div>
-                                            ))}
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={6}>
-                                    <Card className="border-0 bg-light mb-3">
-                                        <Card.Body>
-                                            <h6 className="fw-bold">Allergies</h6>
-                                            {selectedPatient.medicalHistory.allergies.map((allergy, idx) => (
-                                                <div key={idx}>• {allergy}</div>
-                                            ))}
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowMedicalHistoryModal(false)}>Close</Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>
+
+            <style>{`
+            .reports-premium-page {
+                background-color: var(--bg-main);
+                min-height: 100vh;
+                padding: 2rem;
+            }
+
+            .reports-premium-page .card {
+                border-radius: 20px;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border);
+                overflow: hidden;
+                background-color: #fff;
+            }
+
+            .reports-premium-page .card-body {
+                padding: 2rem;
+            }
+
+            .reports-premium-page .list-group-item {
+                border-color: var(--border-light);
+                padding: 1.25rem;
+                transition: all 0.2s ease;
+                border-left: 4px solid transparent;
+            }
+
+            .reports-premium-page .list-group-item.active {
+                background-color: var(--accent-light);
+                border-left-color: var(--primary);
+                color: var(--text-main);
+            }
+
+            .reports-premium-page .nav-tabs {
+                border-bottom: 2px solid var(--border-light);
+                gap: 1rem;
+            }
+
+            .reports-premium-page .nav-link {
+                border: none;
+                color: var(--text-muted);
+                font-weight: 600;
+                padding: 1rem 1.5rem;
+                border-radius: 12px 12px 0 0;
+            }
+
+            .reports-premium-page .nav-link.active {
+                color: var(--primary);
+                background-color: transparent;
+                border-bottom: 3px solid var(--primary);
+            }
+
+            .reports-premium-page .table {
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--border-light);
+            }
+
+            .reports-premium-page .table thead th {
+                background-color: #f8fafc;
+                border-bottom: 2px solid var(--border-light);
+                color: var(--text-light);
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+                padding: 1.25rem 1.5rem;
+            }
+
+            .reports-premium-page .btn-primary {
+                background-color: var(--primary);
+                border: none;
+                padding: 0.75rem 1.5rem;
+                border-radius: 12px;
+                font-weight: 700;
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            }
+
+            .reports-premium-page .form-control {
+                border-radius: 12px;
+                border: 1.5px solid var(--border);
+                padding: 0.8rem 1.2rem;
+            }
+
+            .reports-premium-page .modal-content {
+                border-radius: 24px;
+                border: none;
+            }
+        `}</style>
+        </>
     );
 };
 
