@@ -4,11 +4,7 @@ import com.healthcare.patientservice.dto.PatientRequest;
 import com.healthcare.patientservice.dto.PatientResponse;
 import com.healthcare.patientservice.entity.Patient;
 import com.healthcare.patientservice.exception.ResourceNotFoundException;
-import com.healthcare.patientservice.entity.MedicalReport;
-import com.healthcare.patientservice.entity.Prescription;
-import com.healthcare.patientservice.repository.MedicalReportRepository;
 import com.healthcare.patientservice.repository.PatientRepository;
-import com.healthcare.patientservice.repository.PrescriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +16,6 @@ import java.util.stream.Collectors;
 public class PatientService {
 
     private final PatientRepository patientRepository;
-    private final MedicalReportRepository medicalReportRepository;
-    private final PrescriptionRepository prescriptionRepository;
 
     public List<PatientResponse> getAllPatients() {
         return patientRepository.findAll()
@@ -78,13 +72,7 @@ public class PatientService {
         return toResponse(patientRepository.save(patient));
     }
 
-    public List<MedicalReport> getReportsByPatient(Long patientId) {
-        return medicalReportRepository.findByPatientId(patientId);
-    }
 
-    public List<Prescription> getPrescriptionsByPatient(Long patientId) {
-        return prescriptionRepository.findByPatientId(patientId);
-    }
 
     private PatientResponse toResponse(Patient patient) {
         return PatientResponse.builder()

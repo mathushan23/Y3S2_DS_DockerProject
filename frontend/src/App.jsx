@@ -9,8 +9,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import AppointmentsRoute from "./pages/AppointmentsRoute.jsx";
 import SymptomChecker from "./pages/SymptomChecker.jsx";
-
-
+import UploadReports from "./pages/UploadReports.jsx";
 
 import UserManagement from "./pages/UserManagement";
 import Prescriptions from "./pages/Doctor/Prescriptions.jsx";
@@ -43,6 +42,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="appointments" element={<AppointmentsRoute />} />
             <Route path="symptom-checker" element={<SymptomChecker />} />
+            <Route path="upload-reports" element={<UploadReports />} />
             <Route path="profile" element={<Profile />} />
             <Route path="patientreport" element={<PatientReport />} />
             <Route path="prescriptions" element={<Prescriptions />} />

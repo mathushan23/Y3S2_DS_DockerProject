@@ -15,7 +15,8 @@ import {
   Users,
   Activity,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileUp
 } from "lucide-react";
 import { Nav, Button } from "react-bootstrap";
 
@@ -38,7 +39,8 @@ export default function Sidebar({ isCollapsed, toggleSidebar }) {
     const patientItems = [
       { id: "appointments", label: "Appointments", path: "/appointments", icon: <CalendarDays size={20} /> },
       { id: "symptom-checker", label: "Symptom Checker", path: "/symptom-checker", icon: <Stethoscope size={20} /> },
-      { id: "prescriptions", label: "My Prescriptions", path: "/prescriptions", icon: <FileText size={20} /> }
+      { id: "prescriptions", label: "My Prescriptions", path: "/prescriptions", icon: <FileText size={20} /> },
+      { id: "upload-reports", label: "Upload Reports", path: "/upload-reports", icon: <FileUp size={20} /> }
     ];
 
     const adminItems = [

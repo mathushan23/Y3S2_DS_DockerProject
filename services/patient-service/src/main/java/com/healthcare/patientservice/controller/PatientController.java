@@ -4,9 +4,6 @@ import com.healthcare.patientservice.dto.PatientRequest;
 import com.healthcare.patientservice.dto.PatientResponse;
 import com.healthcare.patientservice.service.PatientService;
 import jakarta.validation.Valid;
-import com.healthcare.patientservice.entity.MedicalReport;
-import com.healthcare.patientservice.entity.Prescription;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,13 +45,4 @@ public class PatientController {
         return patientService.updatePatient(id, request);
     }
 
-    @GetMapping("/{id}/reports")
-    public List<MedicalReport> getReports(@PathVariable Long id) {
-        return patientService.getReportsByPatient(id);
-    }
-
-    @GetMapping("/{id}/prescriptions")
-    public List<Prescription> getPrescriptions(@PathVariable Long id) {
-        return patientService.getPrescriptionsByPatient(id);
-    }
 }
